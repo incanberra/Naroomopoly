@@ -666,11 +666,11 @@ export const LOCAL_KNOWLEDGE_CARDS: GameCard[] = [
   },
   {
     id: 'lk-04',
-    title: 'Historic Nelligen Ferry',
-    description: 'Advance to Nelligen. If you pass Welcome to the South Coast, collect $200.',
+    title: "Visit Ned's Forrest",
+    description: 'Advance to Meringo. If you pass Welcome to the South Coast, collect $200.',
     deck: 'knowledge',
     action: 'advance_to',
-    targetIndex: 1,
+    targetIndex: 27,
   },
   {
     id: 'lk-05',
@@ -742,11 +742,11 @@ export const LOCAL_KNOWLEDGE_CARDS: GameCard[] = [
   },
   {
     id: 'lk-14',
-    title: 'Catch the Tuross Ferry',
-    description: 'Advance to Tuross. If you pass Welcome to the South Coast, collect $200.',
+    title: 'Facebook Marketplace',
+    description: 'Sold some old junk on Facebook, collect $100 from each player.',
     deck: 'knowledge',
-    action: 'advance_to',
-    targetIndex: 29,
+    action: 'collect_from_each_player',
+    amount: 100,
   },
   {
     id: 'lk-15',
@@ -762,7 +762,7 @@ export const LOCAL_KNOWLEDGE_CARDS: GameCard[] = [
     description: 'Humpback migration in full swing! Charter boat sells out. Collect $150.',
     deck: 'knowledge',
     action: 'collect_money',
-    amount: 15,
+    amount: 150,
   },
 ];
 
