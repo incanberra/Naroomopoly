@@ -7,12 +7,16 @@ interface CornerTileProps {
   playersOnTile: PlayerState[];
   isCurrentPlayerTile?: boolean;
   onClick: () => void;
+  onHover?: () => void;
+  onLeave?: () => void;
 }
 
 export const CornerTile: React.FC<CornerTileProps> = ({
   tile,
   isCurrentPlayerTile,
   onClick,
+  onHover,
+  onLeave,
 }) => {
   return (
     <div
@@ -25,6 +29,8 @@ export const CornerTile: React.FC<CornerTileProps> = ({
           onClick();
         }
       }}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
       aria-label={tile.name}
       className={`relative w-full h-full p-2 rounded-xl overflow-hidden cursor-pointer select-none transition-all duration-200 border flex flex-col items-center justify-between shadow-md ${
         isCurrentPlayerTile

@@ -152,9 +152,9 @@ export const BOARD_TILES: BoardTile[] = [
   },
   {
     index: 1,
-    name: 'Clyde River',
+    name: 'Nelligen',
     type: 'property',
-    description: 'Scenic gateway river famous for fresh local oysters and kayaking.',
+    description: 'Historic river port and timber town on the Clyde River, known for houseboats and waterskiing.',
     icon: 'waves',
     property: {
       price: 60,
@@ -174,15 +174,15 @@ export const BOARD_TILES: BoardTile[] = [
   },
   {
     index: 3,
-    name: 'Batemans Bay Bridge',
+    name: 'Long Beach',
     type: 'property',
-    description: 'Iconic crossing opening up the coastal cruise down the Princess Hwy.',
-    icon: 'bridge',
+    description: 'Stretching golden beach with tranquil waters, rockpools and bushland walks.',
+    icon: 'sun',
     property: {
-      price: 60,
+      price: 65,
       rent: [4, 20, 60, 180, 320, 450],
       houseCost: 50,
-      mortgageValue: 30,
+      mortgageValue: 32,
       colorGroup: 'brown',
     },
   },
@@ -211,10 +211,10 @@ export const BOARD_TILES: BoardTile[] = [
   },
   {
     index: 6,
-    name: 'Corrigans Beach',
+    name: 'Surf Beach',
     type: 'property',
-    description: 'Sheltered beach with waterside reserve and playground.',
-    icon: 'umbrella',
+    description: 'Classic patrolled surf beach with vibrant seaside cafes and chip shops.',
+    icon: 'waves',
     property: {
       price: 100,
       rent: [6, 30, 90, 270, 400, 550],
@@ -235,7 +235,7 @@ export const BOARD_TILES: BoardTile[] = [
     index: 8,
     name: 'Denhams Beach',
     type: 'property',
-    description: 'Golden sandy cove loved by dolphins and local swimmers.',
+    description: 'Golden sandy cove loved by dolphins, rockpoolers and local swimmers.',
     icon: 'shell',
     property: {
       price: 100,
@@ -247,10 +247,10 @@ export const BOARD_TILES: BoardTile[] = [
   },
   {
     index: 9,
-    name: 'Surf Beach',
+    name: 'Batehaven',
     type: 'property',
-    description: 'Classic patrolled surf beach with cafes and fish & chips.',
-    icon: 'waves',
+    description: 'Bustling seaside hub with bakery, fish & chips, and reserve playground overlooking the bay.',
+    icon: 'umbrella',
     property: {
       price: 120,
       rent: [8, 40, 100, 300, 450, 600],
@@ -271,9 +271,9 @@ export const BOARD_TILES: BoardTile[] = [
   // Left Row (11 to 20): Upwards
   {
     index: 11,
-    name: 'Long Beach',
+    name: 'Lillipilli',
     type: 'property',
-    description: 'Stretching bay with tranquil waters and bushland walks.',
+    description: 'Secluded cove framed by spotted gums, cliff trails and rock platforms.',
     icon: 'sun',
     property: {
       price: 140,
@@ -422,9 +422,9 @@ export const BOARD_TILES: BoardTile[] = [
   },
   {
     index: 23,
-    name: 'Moruya Markets',
+    name: 'Moruya',
     type: 'property',
-    description: 'Saturday Riverside Park market with sourdough, honey and fresh produce.',
+    description: 'Historic agricultural riverside township, famous granite quarry and Saturday markets.',
     icon: 'shopping-basket',
     property: {
       price: 220,
@@ -463,9 +463,9 @@ export const BOARD_TILES: BoardTile[] = [
   },
   {
     index: 26,
-    name: 'Tuross Head',
+    name: 'Congo',
     type: 'property',
-    description: 'Idyllic peninsula embraced by dual coastal lakes and whale lookouts.',
+    description: 'National park coastal village, pristine surf and quiet bushland campground.',
     icon: 'palmtree',
     property: {
       price: 260,
@@ -477,9 +477,9 @@ export const BOARD_TILES: BoardTile[] = [
   },
   {
     index: 27,
-    name: 'Tuross Lake',
+    name: 'Meringo',
     type: 'property',
-    description: 'Sprawling estuary teeming with flathead, bream and pelicans.',
+    description: 'Untamed ocean headland, grazing kangaroos on dunes and Bingie Dreaming track.',
     icon: 'sailboat',
     property: {
       price: 260,
@@ -505,9 +505,9 @@ export const BOARD_TILES: BoardTile[] = [
   },
   {
     index: 29,
-    name: 'Dalmeny',
+    name: 'Tuross',
     type: 'property',
-    description: 'Clifftop ocean pathway, camp ground and surf beach.',
+    description: 'Idyllic coastal peninsula embraced by twin lakes, Norfolk pines and boat ramps.',
     icon: 'tent',
     property: {
       price: 280,
@@ -543,9 +543,9 @@ export const BOARD_TILES: BoardTile[] = [
   },
   {
     index: 32,
-    name: 'Glasshouse Rocks',
+    name: 'Dalmeny',
     type: 'property',
-    description: 'Millions-of-years-old towering geological sea stacks on Narooma beach.',
+    description: 'Panoramic headland lookout, beachside campground and Mummaga Lake inlet.',
     icon: 'gem',
     property: {
       price: 300,
@@ -666,8 +666,8 @@ export const LOCAL_KNOWLEDGE_CARDS: GameCard[] = [
   },
   {
     id: 'lk-04',
-    title: 'Clyde River Kayaking',
-    description: 'Advance to Clyde River. If you pass Welcome to the South Coast, collect $200.',
+    title: 'Historic Nelligen Ferry',
+    description: 'Advance to Nelligen. If you pass Welcome to the South Coast, collect $200.',
     deck: 'knowledge',
     action: 'advance_to',
     targetIndex: 1,
@@ -743,10 +743,10 @@ export const LOCAL_KNOWLEDGE_CARDS: GameCard[] = [
   {
     id: 'lk-14',
     title: 'Catch the Tuross Ferry',
-    description: 'Advance to Tuross Head. If you pass Welcome to the South Coast, collect $200.',
+    description: 'Advance to Tuross. If you pass Welcome to the South Coast, collect $200.',
     deck: 'knowledge',
     action: 'advance_to',
-    targetIndex: 26,
+    targetIndex: 29,
   },
   {
     id: 'lk-15',

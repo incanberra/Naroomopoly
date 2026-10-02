@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BOARD_TILES } from '../../data/boardData';
 import { GameState } from '../../engine/types';
 import { getCurrentPlayer } from '../../engine/rules';
 import { Tile } from './Tile';
 import { CornerTile } from './CornerTile';
 import { DiceView } from './DiceView';
+import { TileDetailCloseUp } from './TileDetailCloseUp';
 import { TokenRenderer } from '../icons/TokenIcons';
 import { Sparkles, Coins, HelpCircle } from 'lucide-react';
 
@@ -14,6 +15,8 @@ interface BoardProps {
   onAction?: (actionType: string) => void;
   isMyTurn: boolean;
   onOpenRules: () => void;
+  hoveredTileIndex?: number | null;
+  onHoverTile?: (index: number | null) => void;
 }
 
 function getGridPosition(tileIndex: number): {
@@ -51,7 +54,17 @@ export const Board: React.FC<BoardProps> = ({
   onSelectTile,
   isMyTurn,
   onOpenRules,
+  hoveredTileIndex,
+  onHoverTile,
 }) => {
+  const [internalHoveredIndex, setInternalHoveredIndex] = useState<number | null>(null);
+  const activeHoveredIndex = hoveredTileIndex !== undefined ? hoveredTileIndex : internalHoveredIndex;
+
+  const setHover = (idx: number | null) => {
+    setInternalHoveredIndex(idx);
+    onHoverTile?.(idx);
+  };
+
   const currentPlayer = getCurrentPlayer(state);
 
   return (
@@ -92,6 +105,8 @@ export const Board: React.FC<BoardProps> = ({
                   playersOnTile={playersHere}
                   isCurrentPlayerTile={isCurrentTile}
                   onClick={() => onSelectTile(tile.index)}
+                  onHover={() => setHover(tile.index)}
+                  onLeave={() => setHover(null)}
                 />
               ) : (
                 <Tile
@@ -101,6 +116,8 @@ export const Board: React.FC<BoardProps> = ({
                   isCurrentPlayerTile={isCurrentTile}
                   rotation={rotation}
                   onClick={() => onSelectTile(tile.index)}
+                  onHover={() => setHover(tile.index)}
+                  onLeave={() => setHover(null)}
                 />
               )}
 
@@ -131,6 +148,20 @@ export const Board: React.FC<BoardProps> = ({
           }}
           className="relative m-0.5 rounded-xl bg-gradient-to-b from-[#0A192F] via-[#0F172A] to-[#06101E] border border-slate-800/80 p-3 sm:p-5 flex flex-col items-center justify-between overflow-hidden shadow-inner"
         >
+          {/* Zoomed Detailed Close-Up Overlay when hovering any tile */}
+          {activeHoveredIndex !== null && BOARD_TILES[activeHoveredIndex] && (
+            <div className="absolute inset-0 z-40 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-[3px] pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+              <TileDetailCloseUp
+                tile={BOARD_TILES[activeHoveredIndex]}
+                propertyState={state.properties[activeHoveredIndex]}
+                owner={
+                  state.properties[activeHoveredIndex]?.ownerId
+                    ? state.players.find((p) => p.id === state.properties[activeHoveredIndex].ownerId)
+                    : undefined
+                }
+              />
+            </div>
+          )}
           {/* Scenic Illustrated NSW South Coast Background */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-25">
             <svg viewBox="0 0 500 500" className="w-full h-full" preserveAspectRatio="xMidYMid slice">

@@ -42,6 +42,7 @@ export function App() {
 
   // Modals state
   const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
+  const [hoveredTileIndex, setHoveredTileIndex] = useState<number | null>(null);
   const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
   const [isManagePropertiesOpen, setIsManagePropertiesOpen] = useState<boolean>(false);
   const [tradeTargetPlayerId, setTradeTargetPlayerId] = useState<string | null>(null);
@@ -223,6 +224,8 @@ export function App() {
             onSelectTile={(tileIndex) => setSelectedTileIndex(tileIndex)}
             isMyTurn={isMyTurn}
             onOpenRules={() => setIsRulesOpen(true)}
+            hoveredTileIndex={hoveredTileIndex}
+            onHoverTile={setHoveredTileIndex}
           />
 
           <ActionBar
@@ -259,6 +262,7 @@ export function App() {
             onInitiateTrade={(targetId) => setTradeTargetPlayerId(targetId)}
             onKickPlayer={(targetId) => handleDispatchAction({ type: 'KICK_PLAYER', targetPlayerId: targetId })}
             onSelectTile={(tileIndex) => setSelectedTileIndex(tileIndex)}
+            onHoverTile={setHoveredTileIndex}
           />
 
           <EventLog events={state.events} />
@@ -295,6 +299,7 @@ export function App() {
                     setMobileDrawerTab('none');
                     setSelectedTileIndex(tileIndex);
                   }}
+                  onHoverTile={setHoveredTileIndex}
                 />
               ) : (
                 <EventLog events={state.events} />

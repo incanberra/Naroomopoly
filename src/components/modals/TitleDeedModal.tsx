@@ -1,7 +1,7 @@
 import React from 'react';
 import { BOARD_TILES, COLOR_GROUP_CONFIG } from '../../data/boardData';
 import { GameState } from '../../engine/types';
-import { TileIcon } from '../icons/TileIcons';
+import { TileArtIcon } from '../icons/icons';
 import { X, Home, Building2 } from 'lucide-react';
 
 interface TitleDeedModalProps {
@@ -55,7 +55,9 @@ export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
           </div>
         ) : (
           <div className="p-4 bg-slate-800 text-center border-b border-slate-700 flex flex-col items-center">
-            <TileIcon icon={tile.icon} size={28} className="text-amber-400 mb-1" />
+            <div className="text-amber-400 mb-1">
+              <TileArtIcon index={tile.index} size={32} />
+            </div>
             <div className="text-[10px] uppercase font-bold tracking-widest text-slate-400">
               South Coast Landmark
             </div>

@@ -10,6 +10,8 @@ interface TileProps {
   isCurrentPlayerTile?: boolean;
   onClick: () => void;
   rotation?: 0 | 90 | 180 | -90;
+  onHover?: () => void;
+  onLeave?: () => void;
 }
 
 const COLOR_GROUP_LETTERS: Record<ColorGroup, string> = {
@@ -30,9 +32,9 @@ export const Tile: React.FC<TileProps> = ({
   isCurrentPlayerTile,
   onClick,
   rotation = 0,
+  onHover,
+  onLeave,
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
   const colorGroup = tile.property?.colorGroup;
   const colorConfig = colorGroup ? COLOR_GROUP_CONFIG[colorGroup] : null;
   const groupLetter = colorGroup ? COLOR_GROUP_LETTERS[colorGroup] : null;
@@ -52,15 +54,15 @@ export const Tile: React.FC<TileProps> = ({
           onClick();
         }
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
       aria-label={`${tile.name}${price ? `, $${price}` : ''}${owner ? `, Owned by ${owner.name}` : ''}`}
       className={`group relative w-full h-full select-none cursor-pointer transition-all duration-150 overflow-hidden rounded-lg border ${
         isCurrentPlayerTile
           ? 'ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900 border-amber-400 z-10 scale-[1.02]'
           : owner
-          ? 'border-slate-600/90 shadow-sm'
-          : 'border-slate-800/90 hover:border-slate-600'
+          ? 'border-slate-600/90 shadow-sm hover:border-amber-400/90 hover:scale-[1.03] hover:z-20'
+          : 'border-slate-800/90 hover:border-amber-400/80 hover:scale-[1.03] hover:z-20'
       } ${
         isMortgaged ? 'opacity-65 grayscale-[50%]' : ''
       } bg-slate-900/95 hover:bg-slate-800/95 text-slate-100 flex flex-col justify-between`}
@@ -187,21 +189,6 @@ export const Tile: React.FC<TileProps> = ({
         </div>
       )}
 
-      {/* Hover Detail Card on Desktop */}
-      {isHovered && (
-        <div className="absolute inset-0 z-30 bg-slate-900/95 p-1 flex flex-col justify-between text-center animate-in fade-in duration-100 pointer-events-none">
-          <div className="text-[9px] font-extrabold text-amber-300 leading-tight">
-            {tile.name}
-          </div>
-          <div className="text-[8px] text-slate-300 italic line-clamp-2">
-            {tile.description}
-          </div>
-          <div className="text-[8px] font-bold text-emerald-400">
-            {price ? `Price: $${price}` : ''}
-            {owner ? ` • Owner: ${owner.name}` : ''}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

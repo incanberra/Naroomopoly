@@ -11,6 +11,7 @@ interface PlayersPanelProps {
   onInitiateTrade: (targetPlayerId: string) => void;
   onKickPlayer: (targetPlayerId: string) => void;
   onSelectTile: (tileIndex: number) => void;
+  onHoverTile?: (tileIndex: number | null) => void;
 }
 
 export const PlayersPanel: React.FC<PlayersPanelProps> = ({
@@ -19,6 +20,7 @@ export const PlayersPanel: React.FC<PlayersPanelProps> = ({
   onInitiateTrade,
   onKickPlayer,
   onSelectTile,
+  onHoverTile,
 }) => {
   const currentPlayer = getCurrentPlayer(state);
   const myPlayer = state.players.find((p) => p.id === myPlayerId);
@@ -185,6 +187,8 @@ export const PlayersPanel: React.FC<PlayersPanelProps> = ({
                                     <button
                                       key={prop.tileIndex}
                                       onClick={() => onSelectTile(prop.tileIndex)}
+                                      onMouseEnter={() => onHoverTile?.(prop.tileIndex)}
+                                      onMouseLeave={() => onHoverTile?.(null)}
                                       className="px-2 py-0.5 rounded text-[9px] font-bold text-white shadow-xs hover:scale-105 transition-transform flex items-center gap-1"
                                       style={{
                                         backgroundColor: tileColor,

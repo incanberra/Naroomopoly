@@ -357,19 +357,97 @@ export const NoticeBoardIcon: React.FC<IconProps> = ({ className = 'w-6 h-6', si
   </svg>
 );
 
+// 33. Nelligen - Historic river punt / ferry on Clyde River
+export const NelligenIcon: React.FC<IconProps> = ({ className = 'w-6 h-6', size = 24 }) => (
+  <svg viewBox="0 0 48 48" width={size} height={size} className={className} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 34L12 24H36L42 34H6Z" fill="#854D0E" fillOpacity="0.25" stroke="#78350F" strokeWidth="2.2" />
+    <line x1="16" y1="24" x2="16" y2="16" stroke="#78350F" strokeWidth="2.5" />
+    <line x1="32" y1="24" x2="32" y2="16" stroke="#78350F" strokeWidth="2.5" />
+    <line x1="14" y1="16" x2="34" y2="16" stroke="#B45309" strokeWidth="2.5" />
+    <rect x="21" y="10" width="6" height="6" fill="#FDE047" stroke="#B45309" />
+    <path d="M4 38C12 36 20 42 28 39C36 36 40 38 44 38" stroke="#38BDF8" strokeWidth="2" />
+    <path d="M6 43C16 41 24 44 34 42" stroke="#0284C7" strokeWidth="1.8" />
+  </svg>
+);
+
+// 34. Batehaven - Seaside reserve umbrella & bay
+export const BatehavenIcon: React.FC<IconProps> = ({ className = 'w-6 h-6', size = 24 }) => (
+  <svg viewBox="0 0 48 48" width={size} height={size} className={className} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 24C8 15 16 9 24 9C32 9 40 15 40 24H8Z" fill="#38BDF8" fillOpacity="0.25" stroke="#38BDF8" />
+    <path d="M16 24C16 15 20 9 24 9C28 9 32 15 32 24" stroke="#F43F5E" fill="#F43F5E" fillOpacity="0.3" />
+    <path d="M24 9V37C24 39 22 41 20 41" stroke="#F59E0B" />
+    <circle cx="24" cy="8" r="2" fill="#F59E0B" />
+    <path d="M6 41C14 39 22 43 32 41C38 40 42 42 44 42" stroke="#FDE68A" />
+  </svg>
+);
+
+// 35. Lillipilli - Spotted gum eucalypt leaf & secluded cove
+export const LillipilliIcon: React.FC<IconProps> = ({ className = 'w-6 h-6', size = 24 }) => (
+  <svg viewBox="0 0 48 48" width={size} height={size} className={className} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M24 8C16 14 12 24 16 36C22 34 32 30 34 20C36 12 28 8 24 8Z" fill="#10B981" fillOpacity="0.25" stroke="#059669" />
+    <path d="M16 36C20 28 24 20 28 14" stroke="#047857" strokeWidth="1.8" />
+    <path d="M22 24L17 22" stroke="#047857" strokeWidth="1.5" />
+    <path d="M25 18L30 17" stroke="#047857" strokeWidth="1.5" />
+    <path d="M6 42C14 40 22 43 32 41C40 40 44 42 46 42" stroke="#38BDF8" />
+  </svg>
+);
+
+// 36. Moruya - Granite bridge over Moruya River
+export const MoruyaIcon: React.FC<IconProps> = ({ className = 'w-6 h-6', size = 24 }) => (
+  <svg viewBox="0 0 48 48" width={size} height={size} className={className} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 30H42" stroke="#94A3B8" strokeWidth="3" />
+    <path d="M8 30C10 18 18 14 24 14C30 14 38 18 40 30" stroke="#DC2626" fill="#EF4444" fillOpacity="0.15" />
+    <line x1="24" y1="14" x2="24" y2="30" stroke="#DC2626" />
+    <rect x="18" y="22" width="12" height="8" rx="1" fill="#FEF08A" stroke="#CA8A04" />
+    <path d="M4 38C12 36 20 41 30 38C38 36 42 38 44 38" stroke="#38BDF8" />
+  </svg>
+);
+
+// 37. Congo - Bush campsite & campfire in national park
+export const CongoIcon: React.FC<IconProps> = ({ className = 'w-6 h-6', size = 24 }) => (
+  <svg viewBox="0 0 48 48" width={size} height={size} className={className} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="24,10 10,38 38,38" fill="#F59E0B" fillOpacity="0.2" stroke="#D97706" />
+    <polygon points="24,10 24,38 38,38" fill="#B45309" fillOpacity="0.3" />
+    <line x1="24" y1="10" x2="24" y2="38" stroke="#D97706" />
+    <path d="M20 42L28 42" stroke="#78350F" strokeWidth="2.5" />
+    <path d="M22 39C22 35 24 33 24 33C24 33 26 35 26 39Z" fill="#EF4444" />
+    <path d="M4 42H44" stroke="#D97706" strokeWidth="2" />
+  </svg>
+);
+
+// 38. Meringo - Wild headland with kangaroo silhouette
+export const MeringoIcon: React.FC<IconProps> = ({ className = 'w-6 h-6', size = 24 }) => (
+  <svg viewBox="0 0 48 48" width={size} height={size} className={className} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 38C14 34 26 30 42 36" stroke="#F59E0B" strokeWidth="2" />
+    <path d="M18 36C18 30 22 26 26 24C28 20 29 16 32 14C33 13 35 15 34 17C33 19 32 21 34 23C36 25 38 27 38 30C38 33 34 35 30 36" fill="#D97706" fillOpacity="0.3" stroke="#B45309" strokeWidth="2" />
+    <path d="M24 32C20 34 16 36 12 37" stroke="#B45309" strokeWidth="2.5" />
+    <circle cx="33" cy="15" r="1" fill="#78350F" />
+    <path d="M4 42C14 40 24 43 36 41" stroke="#38BDF8" />
+  </svg>
+);
+
+// 39. Tuross - Norfolk Island pine on the headland
+export const TurossIcon: React.FC<IconProps> = ({ className = 'w-6 h-6', size = 24 }) => (
+  <svg viewBox="0 0 48 48" width={size} height={size} className={className} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M24 6L16 16H22L14 26H20L10 38H38L28 26H34L26 16H32L24 6Z" fill="#15803D" fillOpacity="0.3" stroke="#15803D" />
+    <line x1="24" y1="38" x2="24" y2="44" stroke="#78350F" strokeWidth="3" />
+    <path d="M4 42C12 40 20 44 32 42" stroke="#38BDF8" strokeWidth="2" />
+  </svg>
+);
+
 // Tile Icon Dispatcher
 export const TileArtIcon: React.FC<{ index: number; className?: string; size?: number }> = ({ index, className, size = 24 }) => {
   switch (index) {
-    case 1: return <ClydeRiverIcon className={className} size={size} />;
+    case 1: return <NelligenIcon className={className} size={size} />;
     case 2: return <NoticeBoardIcon className={className} size={size} />;
-    case 3: return <BridgeIcon className={className} size={size} />;
+    case 3: return <LongBeachIcon className={className} size={size} />;
     case 4: return <CouncilRatesIcon className={className} size={size} />;
     case 5: return <BunningsIcon className={className} size={size} />;
-    case 6: return <UmbrellaIcon className={className} size={size} />;
+    case 6: return <SurfboardIcon className={className} size={size} />;
     case 7: return <LocalKnowledgeIcon className={className} size={size} />;
     case 8: return <ShellIcon className={className} size={size} />;
-    case 9: return <SurfboardIcon className={className} size={size} />;
-    case 11: return <LongBeachIcon className={className} size={size} />;
+    case 9: return <BatehavenIcon className={className} size={size} />;
+    case 11: return <LillipilliIcon className={className} size={size} />;
     case 12: return <ShireWaterIcon className={className} size={size} />;
     case 13: return <MaluaBayIcon className={className} size={size} />;
     case 14: return <GuerillaBayIcon className={className} size={size} />;
@@ -380,15 +458,15 @@ export const TileArtIcon: React.FC<{ index: number; className?: string; size?: n
     case 19: return <BrouleeWaveIcon className={className} size={size} />;
     case 21: return <MogoIcon className={className} size={size} />;
     case 22: return <LocalKnowledgeIcon className={className} size={size} />;
-    case 23: return <MarketStallIcon className={className} size={size} />;
+    case 23: return <MoruyaIcon className={className} size={size} />;
     case 24: return <LighthouseIcon className={className} size={size} />;
     case 25: return <WoodysIcon className={className} size={size} />;
-    case 26: return <PineTreeIcon className={className} size={size} />;
-    case 27: return <TurossLakeIcon className={className} size={size} />;
+    case 26: return <CongoIcon className={className} size={size} />;
+    case 27: return <MeringoIcon className={className} size={size} />;
     case 28: return <EssentialEnergyIcon className={className} size={size} />;
-    case 29: return <DalmenyIcon className={className} size={size} />;
+    case 29: return <TurossIcon className={className} size={size} />;
     case 31: return <KiangaIcon className={className} size={size} />;
-    case 32: return <GlasshouseRocksIcon className={className} size={size} />;
+    case 32: return <DalmenyIcon className={className} size={size} />;
     case 33: return <NoticeBoardIcon className={className} size={size} />;
     case 34: return <WagongaInletIcon className={className} size={size} />;
     case 35: return <Mitre10Icon className={className} size={size} />;
