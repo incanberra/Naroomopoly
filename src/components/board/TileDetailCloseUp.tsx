@@ -2,6 +2,7 @@ import React from 'react';
 import { BoardTile, COLOR_GROUP_CONFIG, ColorGroup } from '../../data/boardData';
 import { PlayerState, PropertyState } from '../../engine/types';
 import { TileArtIcon } from '../icons/icons';
+import { SquareIllustration } from './SquareIllustration';
 import { TokenRenderer } from '../icons/TokenIcons';
 import { Building2, Home, Landmark, Coins, ShieldAlert, Sparkles } from 'lucide-react';
 
@@ -108,11 +109,11 @@ export const TileDetailCloseUp: React.FC<TileDetailCloseUpProps> = ({
 
       {/* 2. Artwork & Description */}
       <div className="p-2.5 sm:p-3 space-y-2.5 text-xs flex-1 flex flex-col justify-between">
-        <div className="flex items-center gap-2.5 bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
-          <div className="w-10 h-10 rounded-lg bg-slate-800/90 border border-slate-700 flex items-center justify-center flex-shrink-0 text-amber-300 shadow-inner">
-            <TileArtIcon index={tile.index} size={24} />
+        <div className="flex items-center gap-3 bg-slate-950/70 p-2 sm:p-2.5 rounded-xl border border-slate-800 shadow-md">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden shadow-lg border border-slate-700/80 flex-shrink-0 bg-slate-950">
+            <SquareIllustration index={tile.index} size={64} className="w-full h-full object-cover" />
           </div>
-          <p className="text-[11px] text-slate-300 leading-snug italic line-clamp-2">
+          <p className="text-[11px] sm:text-xs text-slate-300 leading-snug italic line-clamp-3">
             {tile.description}
           </p>
         </div>

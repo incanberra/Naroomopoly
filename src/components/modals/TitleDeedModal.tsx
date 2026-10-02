@@ -2,6 +2,7 @@ import React from 'react';
 import { BOARD_TILES, COLOR_GROUP_CONFIG } from '../../data/boardData';
 import { GameState } from '../../engine/types';
 import { TileArtIcon } from '../icons/icons';
+import { SquareIllustration } from '../board/SquareIllustration';
 import { X, Home, Building2 } from 'lucide-react';
 
 interface TitleDeedModalProps {
@@ -55,8 +56,8 @@ export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
           </div>
         ) : (
           <div className="p-4 bg-slate-800 text-center border-b border-slate-700 flex flex-col items-center">
-            <div className="text-amber-400 mb-1">
-              <TileArtIcon index={tile.index} size={32} />
+            <div className="w-14 h-14 rounded-xl overflow-hidden shadow-md border border-slate-600 mb-1.5">
+              <SquareIllustration index={tile.index} size={56} className="w-full h-full object-cover" />
             </div>
             <div className="text-[10px] uppercase font-bold tracking-widest text-slate-400">
               South Coast Landmark
@@ -67,7 +68,17 @@ export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
 
         {/* Card Body */}
         <div className="p-4 space-y-3.5 text-xs">
-          <p className="text-slate-300 italic text-center text-xs">{tile.description}</p>
+          {colorConfig && (
+            <div className="flex items-center gap-3 bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+              <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-700 flex-shrink-0 shadow-sm">
+                <SquareIllustration index={tile.index} size={48} className="w-full h-full object-cover" />
+              </div>
+              <p className="text-slate-300 italic text-xs leading-snug">{tile.description}</p>
+            </div>
+          )}
+          {!colorConfig && (
+            <p className="text-slate-300 italic text-center text-xs">{tile.description}</p>
+          )}
 
           {/* Standard Property Rent Table */}
           {tile.property && (

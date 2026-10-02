@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BoardTile, COLOR_GROUP_CONFIG, ColorGroup } from '../../data/boardData';
 import { PlayerState, PropertyState } from '../../engine/types';
 import { TileArtIcon } from '../icons/icons';
+import { SquareIllustration } from './SquareIllustration';
 
 interface TileProps {
   tile: BoardTile;
@@ -156,9 +157,11 @@ export const Tile: React.FC<TileProps> = ({
           </span>
         </div>
 
-        {/* 3. Unique Hand-Drawn Illustrated SVG Icon */}
-        <div className="flex items-center justify-center my-0.5 text-slate-300 group-hover:text-amber-300 transition-colors drop-shadow-xs flex-shrink-0">
-          <TileArtIcon index={tile.index} size={18} />
+        {/* 3. Bright Relevant Game Board Style Square Illustration */}
+        <div className="flex items-center justify-center my-0.5 group-hover:scale-110 transition-transform drop-shadow-sm flex-shrink-0">
+          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-xs overflow-hidden shadow-xs border border-slate-700/60 bg-slate-950">
+            <SquareIllustration index={tile.index} size={24} className="w-full h-full object-cover" />
+          </div>
         </div>
 
         {/* 4. Price or Type Badge at Bottom */}
