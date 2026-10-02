@@ -199,7 +199,7 @@ export const BOARD_TILES: BoardTile[] = [
   {
     index: 5,
     name: 'Bunnings Batemans Bay',
-    shortName: 'Bunnings BB',
+    shortName: 'Bunnings Batemans Bay',
     type: 'hardware',
     description: 'Snag sizzle on Saturdays, timber and power tools.',
     icon: 'wrench',
@@ -286,7 +286,7 @@ export const BOARD_TILES: BoardTile[] = [
   {
     index: 12,
     name: 'Eurobodalla Shire Water',
-    shortName: 'Shire Water',
+    shortName: 'Eurobodalla Shire Water',
     type: 'utility',
     description: 'Pristine mountain and river catchment water.',
     icon: 'droplets',
@@ -328,7 +328,7 @@ export const BOARD_TILES: BoardTile[] = [
   {
     index: 15,
     name: 'Camerons Moruya',
-    shortName: 'Camerons',
+    shortName: 'Camerons Moruya',
     type: 'hardware',
     description: 'Legendary independent hardware and building supplies family store.',
     icon: 'hammer',
@@ -580,7 +580,7 @@ export const BOARD_TILES: BoardTile[] = [
   {
     index: 35,
     name: 'Mitre 10 Glasshouse Rocks',
-    shortName: 'Mitre 10 Narooma',
+    shortName: 'Mitre 10 Glasshouse Rocks',
     type: 'hardware',
     description: 'Narooma powerhouse for trade tools, paint, and fishing gear.',
     icon: 'axe',
