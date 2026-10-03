@@ -110,6 +110,7 @@ export type GameAction =
   | { type: 'DECLINE_PROPERTY' }
   | { type: 'PLACE_AUCTION_BID'; amount: number }
   | { type: 'PASS_AUCTION' }
+  | { type: 'CONCLUDE_AUCTION' }
   | { type: 'PAY_JAIL_FINE' }
   | { type: 'USE_JAIL_CARD' }
   | { type: 'BUILD_HOUSE'; tileIndex: number }

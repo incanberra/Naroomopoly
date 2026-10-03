@@ -373,5 +373,68 @@ describe('Naroom-opoly Rules Engine', () => {
       expect(check.reason).toContain('No houses left in the bank');
     });
   });
+
+  describe('10. Auction System & Conclusion', () => {
+    it('initiates an auction on declined property and resolves when bidders pass', () => {
+      state.players[0].position = 1; // Nelligen ($60)
+      state.phase = 'rolled';
+
+      // P1 declines property
+      let res = executeGameAction(state, { type: 'DECLINE_PROPERTY' }, p1Id);
+      expect(res.state.phase).toBe('auction');
+      expect(res.state.activeAuction).not.toBeNull();
+      expect(res.state.activeAuction?.activeBidderIds).toEqual([p1Id, p2Id, p3Id]);
+
+      // P2 bids $10
+      res = executeGameAction(res.state, { type: 'PLACE_AUCTION_BID', amount: 10 }, p2Id);
+      expect(res.state.activeAuction?.currentBid).toBe(10);
+      expect(res.state.activeAuction?.highestBidderId).toBe(p2Id);
+      expect(res.state.activeAuction?.minNextBid).toBe(20);
+
+      // P3 passes
+      res = executeGameAction(res.state, { type: 'PASS_AUCTION' }, p3Id);
+      expect(res.state.activeAuction?.activeBidderIds).toEqual([p1Id, p2Id]);
+
+      // P1 passes -> Only P2 remains with highest bid -> Auction finishes!
+      res = executeGameAction(res.state, { type: 'PASS_AUCTION' }, p1Id);
+      expect(res.state.phase).toBe('turn_end');
+      expect(res.state.activeAuction).toBeNull();
+      expect(res.state.properties[1].ownerId).toBe(p2Id);
+      expect(res.state.players[1].cash).toBe(1500 - 10);
+    });
+
+    it('concludes auction automatically via CONCLUDE_AUCTION when timer expires', () => {
+      state.players[0].position = 6; // Surf Beach ($100)
+      state.phase = 'rolled';
+
+      let res = executeGameAction(state, { type: 'DECLINE_PROPERTY' }, p1Id);
+      expect(res.state.phase).toBe('auction');
+
+      // P3 bids $50
+      res = executeGameAction(res.state, { type: 'PLACE_AUCTION_BID', amount: 50 }, p3Id);
+      expect(res.state.activeAuction?.highestBidderId).toBe(p3Id);
+
+      // Timer expires, CONCLUDE_AUCTION is called
+      res = executeGameAction(res.state, { type: 'CONCLUDE_AUCTION' }, p1Id);
+      expect(res.state.phase).toBe('turn_end');
+      expect(res.state.activeAuction).toBeNull();
+      expect(res.state.properties[6].ownerId).toBe(p3Id);
+      expect(res.state.players[2].cash).toBe(1500 - 50);
+    });
+
+    it('marks property unsold when CONCLUDE_AUCTION is called with no bids', () => {
+      state.players[0].position = 6; // Surf Beach ($100)
+      state.phase = 'rolled';
+
+      let res = executeGameAction(state, { type: 'DECLINE_PROPERTY' }, p1Id);
+      expect(res.state.phase).toBe('auction');
+
+      // No bids placed, timer runs out
+      res = executeGameAction(res.state, { type: 'CONCLUDE_AUCTION' }, p1Id);
+      expect(res.state.phase).toBe('turn_end');
+      expect(res.state.activeAuction).toBeNull();
+      expect(res.state.properties[6].ownerId).toBeNull();
+    });
+  });
 });
 

@@ -421,19 +421,39 @@ class GameService {
 
     if (this.botTimer) clearTimeout(this.botTimer);
 
+    // Adaptive bot pacing so card draws, landing implications, and moves remain visible for 3.5s
+    let delay = 1200;
+    if (state.activeCard) {
+      // Action card drawn! Keep visible for 3.7s so players can read the 3.5s notification
+      delay = 3700;
+    } else if (state.phase === 'rolled') {
+      // Bot landed on unowned property. 3.5s delay before deciding to buy or decline
+      delay = 3500;
+    } else if (state.phase === 'turn_end') {
+      // Bot landed and resolved rent/tax/go. 3.5s delay so human can read the landing implication
+      delay = 3500;
+    } else if (state.phase === 'auction') {
+      delay = 1200;
+    }
+
     this.botTimer = setTimeout(() => {
       if (!this.localState) return;
 
       // Identify which bot needs to act
       let botIdToAct: string | null = null;
-      if (isBotTurn) {
-        botIdToAct = currentPlayer.id;
-      } else if (isAuctionWithBots && state.activeAuction) {
-        const activeBot = state.activeAuction.activeBidderIds.find((id) => {
-          const p = state.players.find((pl) => pl.id === id);
-          return p?.isBot && id !== state.activeAuction?.highestBidderId;
+
+      // 1. In auction phase, prioritize finding an active bot bidder who is NOT the highest bidder
+      if (this.localState.phase === 'auction' && this.localState.activeAuction) {
+        const auction = this.localState.activeAuction;
+        const activeBot = auction.activeBidderIds.find((id) => {
+          const p = this.localState!.players.find((pl) => pl.id === id);
+          return p?.isBot && id !== auction.highestBidderId;
         });
-        if (activeBot) botIdToAct = activeBot;
+        if (activeBot) {
+          botIdToAct = activeBot;
+        }
+      } else if (isBotTurn) {
+        botIdToAct = currentPlayer.id;
       }
 
       if (!botIdToAct) return;
@@ -446,7 +466,7 @@ class GameService {
           res.events.forEach((evt) => this.notifyEvent(evt));
         }
       }
-    }, 900); // 900ms natural delay
+    }, delay);
   }
 
   /**

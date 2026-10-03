@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { gameService, GameSession } from './services/gameService';
-import { GameState } from './engine/types';
+import { GameState, GameEvent } from './engine/types';
 import { getCurrentPlayer } from './engine/rules';
+import { BOARD_TILES, GameCard } from './data/boardData';
 import { WelcomeScreen } from './components/lobby/WelcomeScreen';
 import { LobbyScreen } from './components/lobby/LobbyScreen';
 import { Board } from './components/board/Board';
@@ -9,6 +10,7 @@ import { TopNav } from './components/hud/TopNav';
 import { PlayersPanel } from './components/hud/PlayersPanel';
 import { ActionBar } from './components/hud/ActionBar';
 import { EventLog } from './components/hud/EventLog';
+import { TurnActionFlash, TurnFlashData } from './components/hud/TurnActionFlash';
 import { TitleDeedModal } from './components/modals/TitleDeedModal';
 import { ManagePropertiesModal } from './components/modals/ManagePropertiesModal';
 import { TradeModal } from './components/modals/TradeModal';
@@ -23,6 +25,20 @@ export function App() {
   const [session, setSession] = useState<GameSession | null>(gameService.getSession());
   const [state, setState] = useState<GameState | null>(gameService.getLocalState());
   const [defaultJoinCode, setDefaultJoinCode] = useState<string>('');
+
+  // 3.5s Prominent Turn Action Flash Notification State
+  const [activeFlash, setActiveFlash] = useState<TurnFlashData | null>(null);
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const triggerTurnFlash = useCallback((flash: TurnFlashData) => {
+    setActiveFlash(flash);
+    if (flashTimerRef.current) {
+      clearTimeout(flashTimerRef.current);
+    }
+    flashTimerRef.current = setTimeout(() => {
+      setActiveFlash(null);
+    }, 3500);
+  }, []);
 
   // Theme State (Coastal Golden Hour Dark default vs Sandy Light)
   const [isLightTheme, setIsLightTheme] = useState<boolean>(() => {
@@ -48,6 +64,411 @@ export function App() {
   const [tradeTargetPlayerId, setTradeTargetPlayerId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const handleIncomingEvent = useCallback(
+    (event: GameEvent) => {
+      const currentSession = gameService.getSession();
+      const currentState = gameService.getLocalState();
+      const myId = currentSession?.playerId;
+      const pld = event.payload || {};
+
+      const findPl = (id?: string) => currentState?.players.find((p) => p.id === id);
+
+      let flash: TurnFlashData | null = null;
+
+      switch (event.type) {
+        case 'RENT_PAID': {
+          const payerId = (pld.payerId as string) || event.playerId;
+          const ownerId = pld.ownerId as string;
+          const rentAmount = (pld.rentAmount as number) || 0;
+          const tileIndex = pld.tileIndex as number;
+          const tileName =
+            (pld.tileName as string) ||
+            (tileIndex !== undefined ? BOARD_TILES[tileIndex]?.name : 'Property');
+          const payer = findPl(payerId);
+          const owner = findPl(ownerId);
+
+          const isPayerMe = payerId === myId;
+          const isOwnerMe = ownerId === myId;
+
+          if (isPayerMe) {
+            flash = {
+              id: event.id,
+              category: 'rent_deducted',
+              title: `-$${rentAmount} RENT DEDUCTED`,
+              subtitle: `You landed on ${owner?.name || 'Player'}'s ${tileName}`,
+              description: `Paid $${rentAmount} rent to ${owner?.name || 'Owner'}. Cash has been deducted from your cash balance.`,
+              amountChange: -rentAmount,
+              oldBalance: pld.oldCash as number,
+              newBalance: pld.newCash as number,
+              tileIndex,
+              tileName,
+              player: payer ? { ...payer, isMainPlayer: true } : undefined,
+              secondaryPlayer: owner,
+            };
+          } else if (isOwnerMe) {
+            flash = {
+              id: event.id,
+              category: 'rent_collected',
+              title: `+$${rentAmount} RENT COLLECTED!`,
+              subtitle: `${payer?.name || 'Player'} landed on your ${tileName}`,
+              description: `Collected $${rentAmount} rent from ${payer?.name || 'Opponent'}! Added to your balance.`,
+              amountChange: rentAmount,
+              oldBalance: pld.ownerOldCash as number,
+              newBalance: pld.ownerNewCash as number,
+              tileIndex,
+              tileName,
+              player: payer ? { ...payer, isMainPlayer: false } : undefined,
+              secondaryPlayer: owner,
+            };
+          } else {
+            flash = {
+              id: event.id,
+              category: 'rent_other',
+              title: `💸 Rent Paid: $${rentAmount}`,
+              subtitle: `${payer?.name || 'Player'} paid ${owner?.name || 'Owner'}`,
+              description: `Landed on ${tileName}. Transferred $${rentAmount} in rent.`,
+              amountChange: -rentAmount,
+              tileIndex,
+              tileName,
+              player: payer,
+              secondaryPlayer: owner,
+            };
+          }
+          break;
+        }
+
+        case 'TAX_PAID': {
+          const payerId = (pld.payerId as string) || event.playerId;
+          const amount = (pld.amount as number) || 0;
+          const tileIndex = pld.tileIndex as number;
+          const tileName =
+            (pld.tileName as string) ||
+            (tileIndex !== undefined ? BOARD_TILES[tileIndex]?.name : 'Shire Rates');
+          const payer = findPl(payerId);
+          const isMe = payerId === myId;
+
+          flash = {
+            id: event.id,
+            category: 'tax',
+            title: isMe ? `-$${amount} TAX DEDUCTED` : `🏛️ Shire Tax: $${amount}`,
+            subtitle: isMe ? `You landed on ${tileName}` : `${payer?.name || 'Player'} paid ${tileName}`,
+            description: isMe
+              ? `-$${amount} has been deducted from your cash for shire rates and maintenance.`
+              : `${payer?.name || 'Player'} paid $${amount} to the shire.`,
+            amountChange: -amount,
+            oldBalance: pld.oldCash as number,
+            newBalance: pld.newCash as number,
+            tileIndex,
+            tileName,
+            player: payer ? { ...payer, isMainPlayer: isMe } : undefined,
+          };
+          break;
+        }
+
+        case 'CARD_DRAWN': {
+          const card = pld.card as GameCard;
+          const drawerId = (pld.drawerId as string) || event.playerId;
+          const isNotice = Boolean(pld.isNotice ?? (card?.deck === 'notice'));
+          const drawer = findPl(drawerId);
+          const isMe = drawerId === myId;
+
+          if (card) {
+            flash = {
+              id: event.id,
+              category: 'card_drawn',
+              title: isMe ? '🎴 YOU DREW AN ACTION CARD' : `🎴 ${drawer?.name || 'Player'} DREW A CARD`,
+              subtitle: isNotice ? 'Community Notice Board' : 'Local Knowledge',
+              description: `"${card.title}" — ${card.description}`,
+              card,
+              isNotice,
+              player: drawer ? { ...drawer, isMainPlayer: isMe } : undefined,
+            };
+          }
+          break;
+        }
+
+        case 'PASSED_GO': {
+          const payerId = (pld.payerId as string) || event.playerId;
+          const amount = (pld.amount as number) || 200;
+          const payer = findPl(payerId);
+          const isMe = payerId === myId;
+
+          flash = {
+            id: event.id,
+            category: 'go',
+            title: isMe ? '+$200 SALARY COLLECTED!' : '🌊 Welcome to the South Coast',
+            subtitle: isMe ? 'You passed Welcome to Country!' : `${payer?.name || 'Player'} passed GO!`,
+            description: isMe
+              ? '+$200 has been credited to your cash for completing a circuit of the coast!'
+              : `${payer?.name || 'Player'} collected $${amount} salary.`,
+            amountChange: 200,
+            oldBalance: pld.oldCash as number,
+            newBalance: pld.newCash as number,
+            tileIndex: 0,
+            tileName: 'Welcome to the South Coast',
+            player: payer ? { ...payer, isMainPlayer: isMe } : undefined,
+          };
+          break;
+        }
+
+        case 'LANDED_UNOWNED': {
+          const payerId = (pld.payerId as string) || event.playerId;
+          const price = (pld.price as number) || 0;
+          const tileIndex = pld.tileIndex as number;
+          const tileName =
+            (pld.tileName as string) ||
+            (tileIndex !== undefined ? BOARD_TILES[tileIndex]?.name : 'Property');
+          const payer = findPl(payerId);
+          const isMe = payerId === myId;
+
+          flash = {
+            id: event.id,
+            category: 'unowned',
+            title: isMe ? `🏖️ UNOWNED PROPERTY: ${tileName}` : '🏖️ Unowned Property Landing',
+            subtitle: isMe
+              ? `Purchase Price: $${price} | Your Cash: $${payer?.cash ?? 0}`
+              : `${payer?.name || 'Player'} landed on ${tileName} ($${price})`,
+            description: isMe
+              ? `You have landed on an unowned property! Choose to BUY for $${price} or DECLINE to trigger an auction below.`
+              : `${payer?.name || 'Player'} is deciding whether to buy ${tileName} or send it to auction.`,
+            tileIndex,
+            tileName,
+            player: payer ? { ...payer, isMainPlayer: isMe } : undefined,
+          };
+          break;
+        }
+
+        case 'OWN_PROPERTY': {
+          const payerId = (pld.payerId as string) || event.playerId;
+          const tileIndex = pld.tileIndex as number;
+          const tileName =
+            (pld.tileName as string) ||
+            (tileIndex !== undefined ? BOARD_TILES[tileIndex]?.name : 'Property');
+          const payer = findPl(payerId);
+          const isMe = payerId === myId;
+
+          flash = {
+            id: event.id,
+            category: 'own_property',
+            title: isMe ? `🏡 YOUR PROPERTY: ${tileName}` : '🏡 Landed on Own Property',
+            subtitle: isMe ? 'You own this property!' : `${payer?.name || 'Player'} landed on their own property`,
+            description: isMe
+              ? 'No rent due! Relax and enjoy the scenic South Coast view.'
+              : `${payer?.name || 'Player'} landed on ${tileName}. Safe!`,
+            tileIndex,
+            tileName,
+            player: payer ? { ...payer, isMainPlayer: isMe } : undefined,
+          };
+          break;
+        }
+
+        case 'PROPERTY_BOUGHT': {
+          const buyerId = (pld.buyerId as string) || event.playerId;
+          const price = (pld.price as number) || 0;
+          const tileIndex = pld.tileIndex as number;
+          const tileName =
+            (pld.tileName as string) ||
+            (tileIndex !== undefined ? BOARD_TILES[tileIndex]?.name : 'Property');
+          const buyer = findPl(buyerId);
+          const isMe = buyerId === myId;
+
+          flash = {
+            id: event.id,
+            category: 'property_bought',
+            title: isMe ? `🏡 YOU BOUGHT ${tileName}!` : `🏡 ${buyer?.name || 'Player'} Bought Property`,
+            subtitle: `${tileName} purchased for $${price}`,
+            description: isMe
+              ? `Title deed acquired! You can now collect rent when opponents land here.`
+              : `${buyer?.name || 'Player'} bought ${tileName} for $${price}.`,
+            amountChange: -price,
+            oldBalance: pld.oldCash as number,
+            newBalance: pld.newCash as number,
+            tileIndex,
+            tileName,
+            player: buyer ? { ...buyer, isMainPlayer: isMe } : undefined,
+          };
+          break;
+        }
+
+        case 'SENT_TO_JAIL': {
+          const pId = (pld.playerId as string) || event.playerId;
+          const reason = (pld.reason as string) || event.message;
+          const p = findPl(pId);
+          const isMe = pId === myId;
+
+          flash = {
+            id: event.id,
+            category: 'jail',
+            title: isMe ? '🚨 YOU WERE SENT TO JAIL!' : `🚨 ${p?.name || 'Player'} Sent to Jail!`,
+            subtitle: 'Bodalla Police Station',
+            description: reason,
+            tileIndex: 10,
+            tileName: 'Bodalla Police Station',
+            player: p ? { ...p, isMainPlayer: isMe } : undefined,
+          };
+          break;
+        }
+
+        case 'DICE_ROLLED': {
+          const rollerId = event.playerId;
+          const isMe = rollerId === myId;
+          if (!isMe) {
+            const roller = findPl(rollerId);
+            const dice = (pld.dice as [number, number]) || [1, 1];
+            const diceSum = (pld.diceSum as number) || dice[0] + dice[1];
+            const isDoubles = Boolean(pld.isDoubles);
+            const destIdx = pld.destinationIndex as number;
+            const destName =
+              (pld.destinationName as string) ||
+              (destIdx !== undefined ? BOARD_TILES[destIdx]?.name : 'Board');
+
+            flash = {
+              id: event.id,
+              category: 'dice_move',
+              title: `🎲 ${roller?.name || 'Player'}'s Turn`,
+              subtitle: `Rolled [${dice[0]}, ${dice[1]}] (${diceSum})${isDoubles ? ' - DOUBLES!' : ''}`,
+              description: `Moving to ${destName}...`,
+              tileIndex: destIdx,
+              tileName: destName,
+              player: roller ? { ...roller, isMainPlayer: false } : undefined,
+            };
+          }
+          break;
+        }
+
+        case 'FREE_PARKING': {
+          const p = findPl(event.playerId);
+          const isMe = event.playerId === myId;
+          flash = {
+            id: event.id,
+            category: 'general',
+            title: '🏖️ FREE PARKING (BATEHAVEN BEACH)',
+            subtitle: isMe ? 'You are taking a break!' : `${p?.name || 'Player'} is resting`,
+            description: 'No rent or charges due. Relax and soak up the sunshine.',
+            tileIndex: 20,
+            tileName: 'Free Parking',
+            player: p ? { ...p, isMainPlayer: isMe } : undefined,
+          };
+          break;
+        }
+
+        case 'JACKPOT_WON': {
+          const p = findPl(event.playerId);
+          const isMe = event.playerId === myId;
+          const amt = (pld.amount as number) || 0;
+          flash = {
+            id: event.id,
+            category: 'go',
+            title: isMe ? `💰 YOU WON THE JACKPOT OF $${amt}!` : `💰 Jackpot Won: $${amt}`,
+            subtitle: `Free Parking Pool awarded to ${p?.name || 'Player'}`,
+            description: `All accumulated shire tax and fine fees have been won!`,
+            amountChange: amt,
+            tileIndex: 20,
+            tileName: 'Free Parking',
+            player: p ? { ...p, isMainPlayer: isMe } : undefined,
+          };
+          break;
+        }
+
+        case 'AUCTION_STARTED': {
+          const tileIndex = pld.tileIndex as number;
+          const tileName =
+            (pld.tileName as string) ||
+            (tileIndex !== undefined ? BOARD_TILES[tileIndex]?.name : 'Property');
+          flash = {
+            id: event.id,
+            category: 'auction',
+            title: '🔨 PROPERTY AUCTION STARTED',
+            subtitle: `${tileName} is open for bidding!`,
+            description: 'All players can place bids in turn. Highest bidder wins the deed.',
+            tileIndex,
+            tileName,
+          };
+          break;
+        }
+
+        case 'AUCTION_BID': {
+          const bidderId = (pld.bidderId as string) || event.playerId;
+          const amount = (pld.amount as number) || 0;
+          const tileIndex = pld.tileIndex as number;
+          const tileName =
+            (pld.tileName as string) ||
+            (tileIndex !== undefined ? BOARD_TILES[tileIndex]?.name : 'Property');
+          const bidder = findPl(bidderId);
+          const isMe = bidderId === myId;
+
+          flash = {
+            id: event.id,
+            category: 'auction',
+            title: isMe ? `🔨 YOU BID $${amount}!` : `🔨 ${bidder?.name || 'Player'} Bid $${amount}`,
+            subtitle: `${tileName} (Next min bid: $${amount + 10})`,
+            description: isMe
+              ? `Your bid of $${amount} is currently the highest bid.`
+              : `${bidder?.name || 'Player'} placed a bid of $${amount}.`,
+            tileIndex,
+            tileName,
+            player: bidder ? { ...bidder, isMainPlayer: isMe } : undefined,
+          };
+          break;
+        }
+
+        case 'AUCTION_WON': {
+          const winnerId = (pld.winnerId as string) || event.playerId;
+          const finalBid = (pld.finalBid as number) || 0;
+          const tileIndex = pld.tileIndex as number;
+          const tileName =
+            (pld.tileName as string) ||
+            (tileIndex !== undefined ? BOARD_TILES[tileIndex]?.name : 'Property');
+          const winner = findPl(winnerId);
+          const isMe = winnerId === myId;
+
+          flash = {
+            id: event.id,
+            category: 'property_bought',
+            title: isMe ? `🏆 YOU WON THE AUCTION!` : `🏆 ${winner?.name || 'Player'} Won Auction!`,
+            subtitle: `${tileName} won for $${finalBid}`,
+            description: isMe
+              ? `Congratulations! You won ${tileName} for $${finalBid}. Deed added to your properties.`
+              : `${winner?.name || 'Player'} won the auction for ${tileName} for $${finalBid}.`,
+            amountChange: -finalBid,
+            oldBalance: pld.oldCash as number,
+            newBalance: pld.newCash as number,
+            tileIndex,
+            tileName,
+            player: winner ? { ...winner, isMainPlayer: isMe } : undefined,
+          };
+          break;
+        }
+
+        case 'AUCTION_UNSOLD': {
+          const tileIndex = pld.tileIndex as number;
+          const tileName =
+            (pld.tileName as string) ||
+            (tileIndex !== undefined ? BOARD_TILES[tileIndex]?.name : 'Property');
+
+          flash = {
+            id: event.id,
+            category: 'general',
+            title: '🔨 AUCTION CONCLUDED: UNSOLD',
+            subtitle: `${tileName} remains unowned`,
+            description: 'No bids were placed on this property.',
+            tileIndex,
+            tileName,
+          };
+          break;
+        }
+
+        default:
+          break;
+      }
+
+      if (flash) {
+        triggerTurnFlash(flash);
+      }
+    },
+    [triggerTurnFlash]
+  );
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const joinCode = urlParams.get('join');
@@ -60,13 +481,18 @@ export function App() {
         setState(nextState);
         setSession(gameService.getSession());
       },
-      () => {
-        // Handled via audio in gameService
+      (event) => {
+        handleIncomingEvent(event);
       }
     );
 
-    return () => unsubscribe();
-  }, []);
+    return () => {
+      unsubscribe();
+      if (flashTimerRef.current) {
+        clearTimeout(flashTimerRef.current);
+      }
+    };
+  }, [handleIncomingEvent]);
 
   const showError = (msg: string) => {
     setErrorMessage(msg);
@@ -347,9 +773,17 @@ export function App() {
         />
       )}
 
+      {/* 3.5s Prominent Turn Action & Landing Notification Flash */}
+      <TurnActionFlash
+        flash={activeFlash}
+        onDismiss={() => setActiveFlash(null)}
+      />
+
       {state.activeCard && (
         <ActiveCardModal
           card={state.activeCard}
+          player={currentPlayer}
+          isMyCard={currentPlayer?.id === session.playerId}
           onDismiss={() => handleDispatchAction({ type: 'DISMISS_ACTIVE_CARD' })}
         />
       )}

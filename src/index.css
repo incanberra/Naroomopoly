@@ -114,6 +114,20 @@ body {
   animation: cashFlashDown 700ms ease-out;
 }
 
+/* 3.5s Notification Flash Countdown Bar */
+@keyframes flashTimerBar {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0%;
+  }
+}
+
+.animate-flash-timer {
+  animation: flashTimerBar 3500ms linear forwards;
+}
+
 /* Accessible prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   *,

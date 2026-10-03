@@ -353,6 +353,15 @@ function sendToJail(state: GameState, playerId: string, reason: string): GameEve
       type: 'SENT_TO_JAIL',
       playerId,
       message: `${player.name} was sent to Bodalla Police Station: ${reason}`,
+      payload: {
+        reason,
+        playerId,
+        playerName: player.name,
+        playerColor: player.color,
+        playerToken: player.token,
+        tileIndex: 10,
+        tileName: 'Bodalla Police Station',
+      },
     },
   ];
 }
@@ -413,6 +422,7 @@ function handleLanding(
   // 4. Taxes
   if (tile.type === 'tax' && tile.tax) {
     const amount = tile.tax.amount;
+    const oldCash = player.cash;
     player.cash -= amount;
     if (state.settings.freeParkingJackpot) {
       state.freeParkingJackpotPool += amount;
@@ -423,14 +433,20 @@ function handleLanding(
       type: 'TAX_PAID',
       playerId: player.id,
       message: `${player.name} paid $${amount} for ${tile.name}.`,
+      payload: {
+        amount,
+        tileIndex: tile.index,
+        tileName: tile.name,
+        payerId: player.id,
+        payerName: player.name,
+        payerColor: player.color,
+        payerToken: player.token,
+        oldCash,
+        newCash: player.cash,
+      },
     });
 
-    if (player.cash < 0) {
-      // Player is in debt, can liquidate or declare bankruptcy
-      state.phase = 'turn_end';
-    } else {
-      state.phase = 'turn_end';
-    }
+    state.phase = 'turn_end';
     return events;
   }
 
@@ -458,7 +474,14 @@ function handleLanding(
       type: 'CARD_DRAWN',
       playerId: player.id,
       message: `${player.name} drew a ${isNotice ? 'Community Notice Board' : 'Local Knowledge'} card: "${card.title}" - ${card.description}`,
-      payload: { card },
+      payload: {
+        card,
+        isNotice,
+        drawerId: player.id,
+        drawerName: player.name,
+        drawerColor: player.color,
+        drawerToken: player.token,
+      },
     });
 
     // Apply card effect
@@ -476,6 +499,23 @@ function handleLanding(
     }
 
     if (propState.ownerId === null) {
+      const price = tile.property?.price ?? tile.hardware?.price ?? tile.utility?.price ?? 0;
+      events.push({
+        id: `evt-${Date.now()}-unowned`,
+        timestamp: Date.now(),
+        type: 'LANDED_UNOWNED',
+        playerId: player.id,
+        message: `${player.name} landed on unowned ${tile.name} (Price: $${price}).`,
+        payload: {
+          tileIndex: tile.index,
+          tileName: tile.name,
+          price,
+          payerId: player.id,
+          payerName: player.name,
+          payerColor: player.color,
+          payerToken: player.token,
+        },
+      });
       // Unowned: player can buy or decline (declining starts auction)
       state.phase = 'rolled';
       return events;
@@ -488,6 +528,14 @@ function handleLanding(
         type: 'OWN_PROPERTY',
         playerId: player.id,
         message: `${player.name} landed on their own property: ${tile.name}.`,
+        payload: {
+          tileIndex: tile.index,
+          tileName: tile.name,
+          payerId: player.id,
+          payerName: player.name,
+          payerColor: player.color,
+          payerToken: player.token,
+        },
       });
       state.phase = 'turn_end';
       return events;
@@ -500,6 +548,11 @@ function handleLanding(
         type: 'MORTGAGED_TILE',
         playerId: player.id,
         message: `${player.name} landed on ${tile.name}, but it is mortgaged (no rent).`,
+        payload: {
+          tileIndex: tile.index,
+          tileName: tile.name,
+          ownerId: propState.ownerId,
+        },
       });
       state.phase = 'turn_end';
       return events;
@@ -510,6 +563,8 @@ function handleLanding(
     const owner = state.players.find((p) => p.id === propState.ownerId);
 
     if (owner && rentAmount > 0) {
+      const oldPayerCash = player.cash;
+      const oldOwnerCash = owner.cash;
       player.cash -= rentAmount;
       owner.cash += rentAmount;
       events.push({
@@ -518,11 +573,47 @@ function handleLanding(
         type: 'RENT_PAID',
         playerId: player.id,
         message: `${player.name} paid $${rentAmount} rent to ${owner.name} for landing on ${tile.name}.`,
+        payload: {
+          rentAmount,
+          ownerId: owner.id,
+          ownerName: owner.name,
+          ownerColor: owner.color,
+          ownerToken: owner.token,
+          payerId: player.id,
+          payerName: player.name,
+          payerColor: player.color,
+          payerToken: player.token,
+          tileIndex: tile.index,
+          tileName: tile.name,
+          oldCash: oldPayerCash,
+          newCash: player.cash,
+          ownerOldCash: oldOwnerCash,
+          ownerNewCash: owner.cash,
+        },
       });
     }
 
     state.phase = 'turn_end';
     return events;
+  }
+
+  // 7. Bodalla Police Station (Just Visiting)
+  if (tile.type === 'jail') {
+    events.push({
+      id: `evt-${Date.now()}-visit-jail`,
+      timestamp: Date.now(),
+      type: 'JUST_VISITING',
+      playerId: player.id,
+      message: `${player.name} is just visiting Bodalla Police Station.`,
+      payload: {
+        tileIndex: 10,
+        tileName: 'Bodalla Police Station (Just Visiting)',
+        payerId: player.id,
+        payerName: player.name,
+        payerColor: player.color,
+        payerToken: player.token,
+      },
+    });
   }
 
   state.phase = 'turn_end';
@@ -854,7 +945,19 @@ export function executeGameAction(
         type: 'DICE_ROLLED',
         playerId: currentPlayer.id,
         message: `${currentPlayer.name} rolled [${d1}, ${d2}] (${diceSum})${isDoubles ? ' - DOUBLES!' : ''}`,
-        payload: { dice: [d1, d2], isDoubles },
+        payload: {
+          dice: [d1, d2],
+          diceSum,
+          isDoubles,
+          destinationIndex: (currentPlayer.position + diceSum) % 40,
+          destinationName: BOARD_TILES[(currentPlayer.position + diceSum) % 40]?.name,
+          player: {
+            id: currentPlayer.id,
+            name: currentPlayer.name,
+            color: currentPlayer.color,
+            token: currentPlayer.token,
+          },
+        },
       });
 
       // Jail handling
@@ -933,6 +1036,7 @@ export function executeGameAction(
 
       // Passing GO check
       if (newPos < oldPos) {
+        const oldCash = currentPlayer.cash;
         currentPlayer.cash += 200;
         events.push({
           id: `evt-${Date.now()}-pass-go`,
@@ -940,6 +1044,17 @@ export function executeGameAction(
           type: 'PASSED_GO',
           playerId: currentPlayer.id,
           message: `${currentPlayer.name} passed Welcome to the South Coast and collected $200!`,
+          payload: {
+            amount: 200,
+            payerId: currentPlayer.id,
+            payerName: currentPlayer.name,
+            payerColor: currentPlayer.color,
+            payerToken: currentPlayer.token,
+            oldCash,
+            newCash: currentPlayer.cash,
+            tileIndex: 0,
+            tileName: 'Welcome to the South Coast',
+          },
         });
       }
 
@@ -968,6 +1083,7 @@ export function executeGameAction(
         return { state, events: [], error: `Insufficient cash ($${currentPlayer.cash} available, $${price} required)` };
       }
 
+      const oldCash = currentPlayer.cash;
       currentPlayer.cash -= price;
       propState.ownerId = currentPlayer.id;
       events.push({
@@ -976,6 +1092,17 @@ export function executeGameAction(
         type: 'PROPERTY_BOUGHT',
         playerId: currentPlayer.id,
         message: `${currentPlayer.name} bought ${tile.name} for $${price}!`,
+        payload: {
+          price,
+          tileIndex: tile.index,
+          tileName: tile.name,
+          buyerId: currentPlayer.id,
+          buyerName: currentPlayer.name,
+          buyerColor: currentPlayer.color,
+          buyerToken: currentPlayer.token,
+          oldCash,
+          newCash: currentPlayer.cash,
+        },
       });
 
       next.phase = 'turn_end';
@@ -1033,12 +1160,23 @@ export function executeGameAction(
       next.activeAuction.highestBidderId = bidder.id;
       next.activeAuction.minNextBid = action.amount + 10;
 
+      const bidTile = BOARD_TILES[next.activeAuction.tileIndex];
       events.push({
         id: `evt-${Date.now()}-bid`,
         timestamp: Date.now(),
         type: 'AUCTION_BID',
         playerId: bidder.id,
-        message: `${bidder.name} placed a bid of $${action.amount}.`,
+        message: `${bidder.name} placed a bid of $${action.amount} for ${bidTile?.name || 'property'}.`,
+        payload: {
+          bidderId: bidder.id,
+          bidderName: bidder.name,
+          bidderColor: bidder.color,
+          bidderToken: bidder.token,
+          amount: action.amount,
+          minNextBid: next.activeAuction.minNextBid,
+          tileIndex: bidTile?.index,
+          tileName: bidTile?.name,
+        },
       });
 
       return { state: next, events };
@@ -1063,6 +1201,12 @@ export function executeGameAction(
         type: 'AUCTION_PASS',
         playerId: passer.id,
         message: `${passer.name} passed on the auction.`,
+        payload: {
+          playerId: passer.id,
+          playerName: passer.name,
+          playerColor: passer.color,
+          playerToken: passer.token,
+        },
       });
 
       // Check if auction concluded
@@ -1079,6 +1223,7 @@ export function executeGameAction(
           const winner = next.players.find((p) => p.id === winnerId);
           const finalBid = next.activeAuction.currentBid;
           if (winner) {
+            const oldCash = winner.cash;
             winner.cash -= finalBid;
             next.properties[tileIndex].ownerId = winner.id;
             events.push({
@@ -1087,6 +1232,17 @@ export function executeGameAction(
               type: 'AUCTION_WON',
               playerId: winner.id,
               message: `${winner.name} won the auction for ${tile.name} for $${finalBid}!`,
+              payload: {
+                tileIndex,
+                tileName: tile.name,
+                winnerId: winner.id,
+                winnerName: winner.name,
+                winnerColor: winner.color,
+                winnerToken: winner.token,
+                finalBid,
+                oldCash,
+                newCash: winner.cash,
+              },
             });
           }
         } else {
@@ -1095,6 +1251,10 @@ export function executeGameAction(
             timestamp: Date.now(),
             type: 'AUCTION_UNSOLD',
             message: `No bids placed for ${tile.name}. It remains unowned.`,
+            payload: {
+              tileIndex,
+              tileName: tile.name,
+            },
           });
         }
 
@@ -1102,6 +1262,59 @@ export function executeGameAction(
         next.phase = 'turn_end';
       }
 
+      return { state: next, events };
+    }
+
+    case 'CONCLUDE_AUCTION': {
+      if (!next.activeAuction) {
+        return { state, events: [], error: 'No active auction' };
+      }
+
+      const winnerId = next.activeAuction.highestBidderId;
+      const tileIndex = next.activeAuction.tileIndex;
+      const tile = BOARD_TILES[tileIndex];
+
+      if (winnerId) {
+        const winner = next.players.find((p) => p.id === winnerId);
+        const finalBid = next.activeAuction.currentBid;
+        if (winner) {
+          const oldCash = winner.cash;
+          winner.cash -= finalBid;
+          next.properties[tileIndex].ownerId = winner.id;
+          events.push({
+            id: `evt-${Date.now()}-auction-won`,
+            timestamp: Date.now(),
+            type: 'AUCTION_WON',
+            playerId: winner.id,
+            message: `${winner.name} won the auction for ${tile.name} for $${finalBid}!`,
+            payload: {
+              tileIndex,
+              tileName: tile.name,
+              winnerId: winner.id,
+              winnerName: winner.name,
+              winnerColor: winner.color,
+              winnerToken: winner.token,
+              finalBid,
+              oldCash,
+              newCash: winner.cash,
+            },
+          });
+        }
+      } else {
+        events.push({
+          id: `evt-${Date.now()}-auction-unsold`,
+          timestamp: Date.now(),
+          type: 'AUCTION_UNSOLD',
+          message: `No bids placed for ${tile.name}. It remains unowned.`,
+          payload: {
+            tileIndex,
+            tileName: tile.name,
+          },
+        });
+      }
+
+      next.activeAuction = null;
+      next.phase = 'turn_end';
       return { state: next, events };
     }
 
