@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { audio } from '../../services/audioService';
 
 interface DiceProps {
   dice: [number, number];
@@ -77,30 +78,54 @@ const DieFace: React.FC<{ value: number; isRolling: boolean; delay: number }> = 
 
 export const DiceView: React.FC<DiceProps> = ({ dice, isRolling = false }) => {
   const [animating, setAnimating] = useState(isRolling);
+  const [shown, setShown] = useState<[number, number]>(dice);
+  const prevDice = useRef<[number, number]>(dice);
+  const mounted = useRef(false);
 
+  // Animate whenever the dice values change (new roll), skipping initial mount
   useEffect(() => {
-    if (isRolling) {
-      setAnimating(true);
-      const timer = setTimeout(() => setAnimating(false), 800);
-      return () => clearTimeout(timer);
+    const changed = prevDice.current[0] !== dice[0] || prevDice.current[1] !== dice[1];
+    prevDice.current = dice;
+    if (!mounted.current) {
+      mounted.current = true;
+      if (!isRolling) return;
+    } else if (!changed && !isRolling) {
+      return;
     }
-  }, [isRolling, dice]);
+
+    setAnimating(true);
+    audio.playDiceRoll();
+    const cycle = setInterval(() => {
+      setShown([1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)]);
+    }, 160);
+    const timer = setTimeout(() => {
+      clearInterval(cycle);
+      setShown(dice);
+      setAnimating(false);
+    }, 1300);
+    return () => {
+      clearInterval(cycle);
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dice[0], dice[1], isRolling]);
 
   const total = dice[0] + dice[1];
   const isDoubles = dice[0] === dice[1];
+  const faces = animating ? shown : dice;
 
   return (
     <div className="flex flex-col items-center gap-1.5 z-20">
       <div className="flex items-center gap-3 perspective-500">
-        <DieFace value={dice[0]} isRolling={animating} delay={0} />
-        <DieFace value={dice[1]} isRolling={animating} delay={80} />
+        <DieFace value={faces[0]} isRolling={animating} delay={0} />
+        <DieFace value={faces[1]} isRolling={animating} delay={80} />
       </div>
 
       <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 px-2.5 py-0.5 rounded-full shadow-md">
         <span className="font-extrabold text-[11px] sm:text-xs tracking-wider uppercase text-amber-300">
-          Roll: {total}
+          {animating ? 'Rolling…' : `Roll: ${total}`}
         </span>
-        {isDoubles && (
+        {isDoubles && !animating && (
           <span className="text-[10px] font-black tracking-tight text-emerald-400 bg-emerald-950/80 px-1.5 py-0.2 rounded-full border border-emerald-500/50">
             DOUBLES!
           </span>

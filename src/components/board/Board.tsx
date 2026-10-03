@@ -6,6 +6,7 @@ import { Tile } from './Tile';
 import { CornerTile } from './CornerTile';
 import { DiceView } from './DiceView';
 import { TileDetailCloseUp } from './TileDetailCloseUp';
+import { useAnimatedPositions } from './useAnimatedPositions';
 import { TokenRenderer } from '../icons/TokenIcons';
 import { Sparkles, Coins, HelpCircle } from 'lucide-react';
 
@@ -66,9 +67,10 @@ export const Board: React.FC<BoardProps> = ({
   };
 
   const currentPlayer = getCurrentPlayer(state);
+  const displayPositions = useAnimatedPositions(state.players);
 
   return (
-    <div className="relative w-full aspect-square max-h-[92vh] max-w-[min(92vh,100%)] mx-auto p-1.5 sm:p-2 bg-slate-950/90 rounded-2xl shadow-2xl border border-slate-800/80 backdrop-blur-md select-none overflow-hidden">
+    <div className="relative w-full aspect-square max-h-[68vh] max-w-[min(68vh,100%)] lg:max-h-[92vh] lg:max-w-[min(92vh,100%)] mx-auto p-1 sm:p-2 bg-slate-950/90 rounded-2xl shadow-2xl border border-slate-800/80 backdrop-blur-md select-none overflow-hidden touch-manipulation">
       {/* 11x11 CSS Grid with 1.6x Corners and 2px gutters */}
       <div
         className="w-full h-full grid"
@@ -86,7 +88,7 @@ export const Board: React.FC<BoardProps> = ({
             ? state.players.find((p) => p.id === propState.ownerId)
             : undefined;
           const playersHere = state.players.filter(
-            (p) => !p.isBankrupt && p.position === tile.index
+            (p) => !p.isBankrupt && displayPositions[p.id] === tile.index
           );
           const isCurrentTile = currentPlayer?.position === tile.index;
 
@@ -126,8 +128,10 @@ export const Board: React.FC<BoardProps> = ({
                 <div className="absolute bottom-1 right-1 z-30 pointer-events-none flex flex-wrap justify-end gap-0.5 max-w-[34px]">
                   {playersHere.map((p) => (
                     <div
-                      key={p.id}
-                      className="w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full border border-slate-900 shadow-lg flex items-center justify-center transition-transform hover:scale-125 pointer-events-auto"
+                      key={`${p.id}-${tile.index}`}
+                      className={`w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full border shadow-lg flex items-center justify-center pointer-events-auto animate-token-hop ${
+                        p.id === currentPlayer?.id ? 'border-amber-300 ring-2 ring-amber-400/70' : 'border-slate-900'
+                      }`}
                       style={{ backgroundColor: p.color }}
                       title={`${p.name} (${p.token})`}
                     >
@@ -183,14 +187,14 @@ export const Board: React.FC<BoardProps> = ({
 
           {/* Top Logo & Title */}
           <div className="flex flex-col items-center gap-0.5 z-10 text-center">
-            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-sm">
+            <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-sm">
               <Sparkles className="w-3 h-3" />
               NSW South Coast Edition
             </div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500 bg-clip-text text-transparent font-board drop-shadow-md">
+            <h1 className="text-xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500 bg-clip-text text-transparent font-board drop-shadow-md">
               Naroom-opoly
             </h1>
-            <p className="text-[10px] sm:text-xs text-slate-400 font-medium tracking-tight">
+            <p className="hidden sm:block text-[10px] sm:text-xs text-slate-400 font-medium tracking-tight">
               Batemans Bay to Narooma • Princes Highway
             </p>
           </div>

@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BOARD_TILES, COLOR_GROUP_CONFIG } from '../../data/boardData';
 import { GameState } from '../../engine/types';
-import { Gavel, Ban, Clock, Award } from 'lucide-react';
+import { Gavel, Ban, Award } from 'lucide-react';
 import { SquareIllustration } from '../board/SquareIllustration';
 import { TokenRenderer } from '../icons/TokenIcons';
+
+const RING_R = 18;
+const RING_C = 2 * Math.PI * RING_R;
 
 interface AuctionModalProps {
   state: GameState;
@@ -75,6 +78,17 @@ export const AuctionModal: React.FC<AuctionModalProps> = ({
     onAction({ type: 'PASS_AUCTION' });
   };
 
+  // Quick-bid options: minimum, then +10/+50/+100 over the current bid (deduplicated)
+  const quickBids = (() => {
+    const options = [
+      { label: 'Min bid', amount: auction.minNextBid, className: 'bg-emerald-600 hover:bg-emerald-500' },
+      { label: '+$10', amount: auction.currentBid + 10, className: 'bg-teal-600 hover:bg-teal-500' },
+      { label: '+$50', amount: auction.currentBid + 50, className: 'bg-cyan-600 hover:bg-cyan-500' },
+      { label: '+$100', amount: auction.currentBid + 100, className: 'bg-sky-600 hover:bg-sky-500' },
+    ].filter((o) => o.amount >= auction.minNextBid);
+    return options.filter((o, i) => options.findIndex((x) => x.amount === o.amount) === i);
+  })();
+
   // Hammer call phrase based on remaining seconds
   const getHammerText = () => {
     if (!highestBidder) {
@@ -93,8 +107,8 @@ export const AuctionModal: React.FC<AuctionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="relative w-full max-w-md bg-slate-900 border-2 border-amber-500 rounded-2xl shadow-2xl flex flex-col text-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-2 sm:p-4">
+      <div className="relative w-full max-w-md max-h-[96vh] overflow-y-auto bg-slate-900 border-2 border-amber-500 rounded-2xl shadow-2xl flex flex-col text-slate-100 overflow-x-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header with Live Gavel Hammer Status */}
         <div className="p-4 bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 text-slate-950 flex items-center justify-between shadow-md">
           <div className="flex items-center gap-2.5">
@@ -107,18 +121,30 @@ export const AuctionModal: React.FC<AuctionModalProps> = ({
             </div>
           </div>
 
-          {/* Countdown Clock Badge */}
+          {/* Countdown Ring */}
           <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-black text-xs border shadow-inner ${
-              secondsRemaining <= 2
-                ? 'bg-red-600 text-white border-red-400 animate-bounce'
-                : secondsRemaining <= 4
-                ? 'bg-amber-400 text-slate-950 border-amber-300'
-                : 'bg-slate-950/80 text-amber-300 border-amber-500/50'
-            }`}
+            className={`relative w-12 h-12 flex-shrink-0 ${secondsRemaining <= 2 ? 'animate-pulse' : ''}`}
+            role="timer"
+            aria-label={`${secondsRemaining} seconds remaining`}
           >
-            <Clock className="w-3.5 h-3.5" />
-            <span>{secondsRemaining}s</span>
+            <svg viewBox="0 0 44 44" className="w-full h-full -rotate-90">
+              <circle cx="22" cy="22" r={RING_R} fill="rgba(2,6,23,0.75)" stroke="rgba(2,6,23,0.35)" strokeWidth="4" />
+              <circle
+                cx="22"
+                cy="22"
+                r={RING_R}
+                fill="none"
+                strokeWidth="4"
+                strokeLinecap="round"
+                stroke={secondsRemaining <= 2 ? '#EF4444' : secondsRemaining <= 4 ? '#FBBF24' : '#34D399'}
+                strokeDasharray={RING_C}
+                strokeDashoffset={RING_C * (1 - secondsRemaining / 6)}
+                style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.3s' }}
+              />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center font-black text-base text-white">
+              {secondsRemaining}
+            </span>
           </div>
         </div>
 
@@ -233,28 +259,21 @@ export const AuctionModal: React.FC<AuctionModalProps> = ({
             </div>
           ) : (
             <div className="space-y-2.5">
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => placeBid(auction.minNextBid)}
-                  disabled={Boolean(myPlayer && myPlayer.cash < auction.minNextBid)}
-                  className="py-2.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 disabled:opacity-40"
-                >
-                  Bid ${auction.minNextBid}
-                </button>
-                <button
-                  onClick={() => placeBid(auction.currentBid + 50)}
-                  disabled={Boolean(myPlayer && myPlayer.cash < auction.currentBid + 50)}
-                  className="py-2.5 px-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 disabled:opacity-40"
-                >
-                  +${50} (${auction.currentBid + 50})
-                </button>
-                <button
-                  onClick={() => placeBid(auction.currentBid + 100)}
-                  disabled={Boolean(myPlayer && myPlayer.cash < auction.currentBid + 100)}
-                  className="py-2.5 px-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 disabled:opacity-40"
-                >
-                  +${100} (${auction.currentBid + 100})
-                </button>
+              <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500 text-center">
+                Quick bid {myPlayer ? `• You have $${myPlayer.cash}` : ''}
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {quickBids.map((q) => (
+                  <button
+                    key={q.amount}
+                    onClick={() => placeBid(q.amount)}
+                    disabled={Boolean(myPlayer && myPlayer.cash < q.amount)}
+                    className={`py-2.5 px-2 rounded-xl text-white font-extrabold text-xs shadow-md transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center leading-tight ${q.className}`}
+                  >
+                    <span>{q.label}</span>
+                    <span className="text-[10px] font-bold opacity-80">${q.amount}</span>
+                  </button>
+                ))}
               </div>
 
               <button

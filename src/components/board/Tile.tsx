@@ -183,6 +183,18 @@ export const Tile: React.FC<TileProps> = ({
         </div>
       </div>
 
+      {/* Owner flag (top-right corner, in the owner's colour) */}
+      {owner && (
+        <div
+          className="absolute top-0 right-0 w-3.5 h-3.5 z-20 pointer-events-none"
+          style={{
+            background: `linear-gradient(225deg, ${owner.color} 50%, transparent 50%)`,
+            filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.5))',
+          }}
+          title={`Owned by ${owner.name}`}
+        />
+      )}
+
       {/* Mortgaged Overlay Ribbon */}
       {isMortgaged && (
         <div className="absolute inset-0 bg-black/65 backdrop-blur-[0.5px] flex items-center justify-center pointer-events-none z-10">

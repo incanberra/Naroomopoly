@@ -92,7 +92,7 @@ body {
 }
 
 .animate-dice-tumble {
-  animation: diceTumble 800ms cubic-bezier(0.25, 1, 0.5, 1) both;
+  animation: diceTumble 1300ms cubic-bezier(0.25, 1, 0.5, 1) both;
 }
 
 /* Cash Flashing Feedback */
@@ -112,6 +112,28 @@ body {
 
 .animate-cash-down {
   animation: cashFlashDown 700ms ease-out;
+}
+
+/* Token hop on arrival at each square */
+@keyframes tokenHop {
+  0% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-9px) scale(1.35); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.animate-token-hop {
+  animation: tokenHop 300ms ease-out;
+}
+
+/* Floating +/- money tag */
+@keyframes floatMoney {
+  0% { opacity: 0; transform: translateY(4px) scale(0.8); }
+  15% { opacity: 1; transform: translateY(-4px) scale(1.2); }
+  100% { opacity: 0; transform: translateY(-30px) scale(1); }
+}
+
+.animate-float-money {
+  animation: floatMoney 2200ms ease-out forwards;
 }
 
 /* 3.5s Notification Flash Countdown Bar */

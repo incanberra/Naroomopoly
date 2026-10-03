@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GameState } from '../../engine/types';
 import { BOARD_TILES, COLOR_GROUP_CONFIG, ColorGroup } from '../../data/boardData';
 import { TokenRenderer } from '../icons/TokenIcons';
+import { CashBadge } from './CashBadge';
 import { getCurrentPlayer, ownsFullGroup } from '../../engine/rules';
 import { ArrowLeftRight, UserX, ShieldAlert, ChevronDown, ChevronUp, Crown } from 'lucide-react';
 
@@ -118,15 +119,7 @@ export const PlayersPanel: React.FC<PlayersPanelProps> = ({
                       </span>
                     ) : (
                       <div className="flex flex-col items-end gap-0.5">
-                        <div
-                          className={`px-2.5 py-0.5 rounded-full font-black text-sm tracking-tight border shadow-xs ${
-                            player.cash < 0
-                              ? 'bg-red-950/80 border-red-500/50 text-red-400 animate-pulse'
-                              : 'bg-emerald-950/70 border-emerald-500/40 text-emerald-300'
-                          }`}
-                        >
-                          ${player.cash}
-                        </div>
+                        <CashBadge cash={player.cash} />
                         {player.inJail && (
                           <span className="inline-flex items-center gap-1 text-[10px] text-amber-400 font-bold bg-amber-950/40 px-1.5 py-0.2 rounded border border-amber-800/40">
                             <ShieldAlert className="w-3 h-3" />

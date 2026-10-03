@@ -616,7 +616,7 @@ export function App() {
       )}
 
       {/* Mobile Swipeable Players Strip (Mobile portrait only) */}
-      <div className="lg:hidden flex items-center gap-2 px-3 py-1.5 bg-slate-900/80 border-b border-slate-800 overflow-x-auto">
+      <div className="lg:hidden sticky top-0 z-30 flex items-center gap-2 px-3 py-1.5 bg-slate-900/95 backdrop-blur border-b border-slate-800 overflow-x-auto snap-x">
         {state.players.map((p) => {
           const isTurn = p.id === currentPlayer?.id;
           return (
@@ -642,7 +642,7 @@ export function App() {
       </div>
 
       {/* Main Responsive Game Viewport */}
-      <main className="flex-1 w-full max-w-[1550px] mx-auto p-1.5 sm:p-3 grid grid-cols-1 lg:grid-cols-12 gap-3 items-start overflow-hidden">
+      <main className="flex-1 w-full max-w-[1550px] mx-auto p-1.5 sm:p-3 grid grid-cols-1 lg:grid-cols-12 gap-3 items-start lg:overflow-hidden">
         {/* Left Column: Board + Action Bar (Perfect square fitting in viewport) */}
         <div className="lg:col-span-8 xl:col-span-8 flex flex-col items-center justify-start gap-2.5 w-full">
           <Board
@@ -654,29 +654,32 @@ export function App() {
             onHoverTile={setHoveredTileIndex}
           />
 
-          <ActionBar
-            state={state}
-            myPlayerId={session.playerId}
-            onAction={handleDispatchAction}
-            onOpenManageProperties={() => setIsManagePropertiesOpen(true)}
-          />
+          {/* Controls dock: sticky to the bottom on mobile so Roll/Buy/End Turn are always reachable */}
+          <div className="w-full flex flex-col gap-2 sticky bottom-0 z-30 lg:static -mx-1.5 px-1.5 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:m-0 lg:p-0 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent lg:bg-none">
+            <ActionBar
+              state={state}
+              myPlayerId={session.playerId}
+              onAction={handleDispatchAction}
+              onOpenManageProperties={() => setIsManagePropertiesOpen(true)}
+            />
 
-          {/* Mobile Drawer Trigger Buttons */}
-          <div className="lg:hidden flex items-center justify-center gap-3 w-full py-1">
-            <button
-              onClick={() => setMobileDrawerTab(mobileDrawerTab === 'players' ? 'none' : 'players')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200"
-            >
-              <Users className="w-3.5 h-3.5 text-cyan-400" />
-              Player Assets ({state.players.length})
-            </button>
-            <button
-              onClick={() => setMobileDrawerTab(mobileDrawerTab === 'log' ? 'none' : 'log')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200"
-            >
-              <ScrollText className="w-3.5 h-3.5 text-amber-400" />
-              Game History ({state.events.length})
-            </button>
+            {/* Mobile Drawer Trigger Buttons */}
+            <div className="lg:hidden grid grid-cols-2 gap-2 w-full">
+              <button
+                onClick={() => setMobileDrawerTab(mobileDrawerTab === 'players' ? 'none' : 'players')}
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 active:scale-95 transition-transform"
+              >
+                <Users className="w-4 h-4 text-cyan-400" />
+                Players ({state.players.length})
+              </button>
+              <button
+                onClick={() => setMobileDrawerTab(mobileDrawerTab === 'log' ? 'none' : 'log')}
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 active:scale-95 transition-transform"
+              >
+                <ScrollText className="w-4 h-4 text-amber-400" />
+                History ({state.events.length})
+              </button>
+            </div>
           </div>
         </div>
 
