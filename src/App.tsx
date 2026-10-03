@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import confetti from 'canvas-confetti';
 import { gameService, GameSession } from './services/gameService';
-import { GameState, GameEvent } from './engine/types';
-import { getCurrentPlayer } from './engine/rules';
+import { GameState, GameEvent, PropertyState } from './engine/types';
+import { getCurrentPlayer, ownsFullGroup } from './engine/rules';
 import { BOARD_TILES, GameCard } from './data/boardData';
 import { WelcomeScreen } from './components/lobby/WelcomeScreen';
 import { LobbyScreen } from './components/lobby/LobbyScreen';
@@ -29,6 +30,10 @@ export function App() {
   // 3.5s Prominent Turn Action Flash Notification State
   const [activeFlash, setActiveFlash] = useState<TurnFlashData | null>(null);
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Bodalla Police Station Screen Shake & Strobe State
+  const [isJailShaking, setIsJailShaking] = useState<boolean>(false);
+  const jailShakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const triggerTurnFlash = useCallback((flash: TurnFlashData) => {
     setActiveFlash(flash);
@@ -193,6 +198,18 @@ export function App() {
           const payer = findPl(payerId);
           const isMe = payerId === myId;
 
+          // Confetti celebration for passing GO
+          try {
+            confetti({
+              particleCount: 50,
+              spread: 70,
+              origin: { y: 0.8 },
+              colors: ['#F59E0B', '#FBBF24', '#FDE047', '#10B981'],
+            });
+          } catch {
+            // ignore if confetti unavailable
+          }
+
           flash = {
             id: event.id,
             category: 'go',
@@ -272,6 +289,34 @@ export function App() {
           const buyer = findPl(buyerId);
           const isMe = buyerId === myId;
 
+          // Monopoly completion celebration
+          const boughtTile = BOARD_TILES[tileIndex];
+          if (boughtTile?.property?.colorGroup && currentState) {
+            const prev = currentState.properties[tileIndex];
+            const nextProps: Record<number, PropertyState> = {
+              ...currentState.properties,
+              [tileIndex]: {
+                tileIndex,
+                houses: prev?.houses ?? 0,
+                isMortgaged: prev?.isMortgaged ?? false,
+                ownerId: buyerId ?? null,
+              },
+            };
+            const checkState: GameState = { ...currentState, properties: nextProps };
+            if (buyerId && ownsFullGroup(checkState, buyerId, boughtTile.property.colorGroup)) {
+              try {
+                confetti({
+                  particleCount: 90,
+                  spread: 90,
+                  origin: { y: 0.6 },
+                  colors: ['#E11D48', '#F59E0B', '#10B981', '#06B6D4', '#8B5CF6'],
+                });
+              } catch {
+                // ignore
+              }
+            }
+          }
+
           flash = {
             id: event.id,
             category: 'property_bought',
@@ -295,6 +340,15 @@ export function App() {
           const reason = (pld.reason as string) || event.message;
           const p = findPl(pId);
           const isMe = pId === myId;
+
+          // Bodalla Police Station dramatic screen shake & police strobe
+          setIsJailShaking(true);
+          if (jailShakeTimerRef.current) {
+            clearTimeout(jailShakeTimerRef.current);
+          }
+          jailShakeTimerRef.current = setTimeout(() => {
+            setIsJailShaking(false);
+          }, 900);
 
           flash = {
             id: event.id,
@@ -356,6 +410,19 @@ export function App() {
           const p = findPl(event.playerId);
           const isMe = event.playerId === myId;
           const amt = (pld.amount as number) || 0;
+
+          // Grand Jackpot confetti cannon blast
+          try {
+            confetti({
+              particleCount: 120,
+              spread: 100,
+              origin: { y: 0.5 },
+              colors: ['#F59E0B', '#E11D48', '#3B82F6', '#10B981', '#A855F7'],
+            });
+          } catch {
+            // ignore
+          }
+
           flash = {
             id: event.id,
             category: 'go',
@@ -421,6 +488,34 @@ export function App() {
             (tileIndex !== undefined ? BOARD_TILES[tileIndex]?.name : 'Property');
           const winner = findPl(winnerId);
           const isMe = winnerId === myId;
+
+          // Check monopoly completion for auction winner
+          const wonTile = BOARD_TILES[tileIndex];
+          if (wonTile?.property?.colorGroup && currentState) {
+            const prev = currentState.properties[tileIndex];
+            const nextProps: Record<number, PropertyState> = {
+              ...currentState.properties,
+              [tileIndex]: {
+                tileIndex,
+                houses: prev?.houses ?? 0,
+                isMortgaged: prev?.isMortgaged ?? false,
+                ownerId: winnerId ?? null,
+              },
+            };
+            const checkState: GameState = { ...currentState, properties: nextProps };
+            if (winnerId && ownsFullGroup(checkState, winnerId, wonTile.property.colorGroup)) {
+              try {
+                confetti({
+                  particleCount: 90,
+                  spread: 90,
+                  origin: { y: 0.6 },
+                  colors: ['#E11D48', '#F59E0B', '#10B981', '#06B6D4', '#8B5CF6'],
+                });
+              } catch {
+                // ignore
+              }
+            }
+          }
 
           flash = {
             id: event.id,
@@ -491,6 +586,9 @@ export function App() {
       if (flashTimerRef.current) {
         clearTimeout(flashTimerRef.current);
       }
+      if (jailShakeTimerRef.current) {
+        clearTimeout(jailShakeTimerRef.current);
+      }
     };
   }, [handleIncomingEvent]);
 
@@ -535,6 +633,7 @@ export function App() {
     if (!res.success && res.error) {
       showError(res.error);
     }
+    return res;
   };
 
   const handleLeaveGame = () => {
@@ -591,7 +690,11 @@ export function App() {
   // 3. Active Playing Game Phase
   const currentPlayer = getCurrentPlayer(state);
   const isMyTurn = currentPlayer?.id === session.playerId;
-  const isTradeActive = Boolean(state.activeTrade);
+  const isTradeActive = Boolean(
+    state.activeTrade &&
+      (state.activeTrade.toPlayerId === session.playerId ||
+        state.activeTrade.fromPlayerId === session.playerId)
+  );
 
   return (
     <div className={`min-h-screen flex flex-col font-sans select-none ${isLightTheme ? 'light-theme' : ''}`}>
@@ -641,8 +744,19 @@ export function App() {
         })}
       </div>
 
+      {/* Bodalla Police Station Emergency Strobe Alert Banner */}
+      {isJailShaking && (
+        <div className="fixed inset-0 z-50 pointer-events-none animate-police-strobe flex items-start justify-center pt-8 px-4">
+          <div className="bg-red-950/95 border-2 border-red-500 text-white font-board font-black text-xs sm:text-base px-6 py-2.5 rounded-full shadow-2xl flex items-center gap-2 animate-bounce">
+            <span className="text-xl">🚨</span>
+            <span>BODALLA POLICE STATION • ARREST WARRANT ISSUED!</span>
+            <span className="text-xl">🚨</span>
+          </div>
+        </div>
+      )}
+
       {/* Main Responsive Game Viewport */}
-      <main className="flex-1 w-full max-w-[1550px] mx-auto p-1.5 sm:p-3 grid grid-cols-1 lg:grid-cols-12 gap-3 items-start lg:overflow-hidden">
+      <main className={`flex-1 w-full max-w-[1550px] mx-auto p-1.5 sm:p-3 grid grid-cols-1 lg:grid-cols-12 gap-3 items-start lg:overflow-hidden ${isJailShaking ? 'animate-jail-shake' : ''}`}>
         {/* Left Column: Board + Action Bar (Perfect square fitting in viewport) */}
         <div className="lg:col-span-8 xl:col-span-8 flex flex-col items-center justify-start gap-2.5 w-full">
           <Board

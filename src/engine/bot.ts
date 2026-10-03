@@ -30,9 +30,23 @@ export function getBotAction(state: GameState, botPlayerId: string): GameAction 
     }
   }
 
-  // 2. Respond to Trade Offer if bot is recipient
+  // 2. Respond to Trade Offer if bot is recipient: accept only if it is clearly in the bot's favour
   if (state.activeTrade && state.activeTrade.toPlayerId === botPlayerId) {
-    // For simplicity, reject unfavorable trades or accept reasonable ones
+    const t = state.activeTrade;
+    const bot = state.players.find((p) => p.id === botPlayerId);
+    const worth = (idx: number) => {
+      const tile = BOARD_TILES[idx];
+      const base = tile?.property?.price ?? tile?.hardware?.price ?? tile?.utility?.price ?? 0;
+      return state.properties[idx]?.isMortgaged ? base / 2 : base;
+    };
+    const gain =
+      t.offerCash + t.offerProperties.reduce((s, i) => s + worth(i), 0) + t.offerJailCards * 50;
+    const cost =
+      t.requestCash + t.requestProperties.reduce((s, i) => s + worth(i), 0) + t.requestJailCards * 50;
+    const keepsBuffer = !bot || bot.cash - t.requestCash + t.offerCash >= 100;
+    if (keepsBuffer && gain >= cost * 1.1 && gain > 0) {
+      return { type: 'ACCEPT_TRADE' };
+    }
     return { type: 'REJECT_TRADE' };
   }
 

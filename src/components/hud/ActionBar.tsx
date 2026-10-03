@@ -33,10 +33,10 @@ export const ActionBar: React.FC<ActionBarProps> = ({
 
   if (!isMyTurn) {
     return (
-      <div className="w-full bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-center text-slate-400 text-xs sm:text-sm font-medium backdrop-blur-md shadow-lg flex items-center justify-center gap-2">
+      <div className="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-3 text-center text-slate-400 text-xs sm:text-sm font-board backdrop-blur-md shadow-lg flex items-center justify-center gap-2">
         <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
         <span>
-          Waiting for <strong className="text-amber-300">{currentPlayer?.name}</strong> to take their turn...
+          Waiting for <strong className="text-amber-300 font-bold">{currentPlayer?.name}</strong> to take their turn...
         </span>
       </div>
     );
@@ -48,7 +48,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
   const hasJailCard = currentPlayer.jailCardsNotice > 0 || currentPlayer.jailCardsKnowledge > 0;
 
   return (
-    <div className="w-full bg-slate-900/95 border-2 border-amber-500/80 rounded-2xl p-3 shadow-2xl backdrop-blur-md flex flex-wrap items-center justify-between gap-3 sticky bottom-2 z-40">
+    <div className="w-full bg-slate-900/95 border-2 border-amber-500/80 rounded-3xl p-3 shadow-2xl backdrop-blur-md flex flex-wrap items-center justify-between gap-3 sticky bottom-2 z-40 font-board">
       {/* Turn Status Message */}
       <div className="flex items-center gap-2.5 min-w-0">
         <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping flex-shrink-0" />

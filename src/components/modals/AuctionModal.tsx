@@ -108,14 +108,14 @@ export const AuctionModal: React.FC<AuctionModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-2 sm:p-4">
-      <div className="relative w-full max-w-md max-h-[96vh] overflow-y-auto bg-slate-900 border-2 border-amber-500 rounded-2xl shadow-2xl flex flex-col text-slate-100 overflow-x-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-md max-h-[96vh] overflow-y-auto bg-slate-900 border-2 border-amber-500 rounded-3xl shadow-2xl flex flex-col text-slate-100 overflow-x-hidden animate-in fade-in zoom-in-95 duration-150 font-board">
         {/* Header with Live Gavel Hammer Status */}
         <div className="p-4 bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 text-slate-950 flex items-center justify-between shadow-md">
           <div className="flex items-center gap-2.5">
             <Gavel className="w-6 h-6 animate-pulse" />
             <div>
-              <h2 className="text-lg font-black tracking-tight uppercase">Public Auction!</h2>
-              <p className="text-xs font-bold text-amber-950">
+              <h2 className="text-lg font-black tracking-tight uppercase font-board">Public Auction!</h2>
+              <p className="text-xs font-bold text-amber-950 font-board">
                 {getHammerText()}
               </p>
             </div>

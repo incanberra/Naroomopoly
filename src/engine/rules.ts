@@ -892,6 +892,41 @@ export function advanceTurn(state: GameState): GameEvent[] {
 }
 
 /**
+ * Checks a trade is currently executable. Returns an error message, or null if valid.
+ */
+export function validateTradeOffer(
+  state: GameState,
+  offer: Pick<
+    TradeOffer,
+    | 'fromPlayerId'
+    | 'toPlayerId'
+    | 'offerCash'
+    | 'requestCash'
+    | 'offerProperties'
+    | 'requestProperties'
+    | 'offerJailCards'
+    | 'requestJailCards'
+  >
+): string | null {
+  const from = state.players.find((p) => p.id === offer.fromPlayerId);
+  const to = state.players.find((p) => p.id === offer.toPlayerId);
+  if (!from || !to) return 'Invalid players for trade';
+  if (from.isBankrupt || to.isBankrupt) return 'A bankrupt player cannot trade';
+  if (offer.offerCash < 0 || offer.requestCash < 0) return 'Invalid cash amount';
+  if (from.cash < offer.offerCash) return `${from.name} does not have enough cash to offer`;
+  if (to.cash < offer.requestCash) return `${to.name} does not have enough cash`;
+  for (const idx of offer.offerProperties) {
+    if (state.properties[idx]?.ownerId !== from.id) return `${from.name} no longer owns ${BOARD_TILES[idx]?.name}`;
+  }
+  for (const idx of offer.requestProperties) {
+    if (state.properties[idx]?.ownerId !== to.id) return `${to.name} does not own ${BOARD_TILES[idx]?.name}`;
+  }
+  if (from.jailCardsNotice < offer.offerJailCards) return `${from.name} does not have that many jail cards`;
+  if (to.jailCardsNotice < offer.requestJailCards) return `${to.name} does not have that many jail cards`;
+  return null;
+}
+
+/**
  * Main Pure Engine Reducer / Dispatcher
  */
 export function executeGameAction(
@@ -1520,8 +1555,20 @@ export function executeGameAction(
       if (!fromPlayer || !toPlayer) {
         return { state, events: [], error: 'Invalid players for trade' };
       }
-      if (fromPlayer.cash < action.offer.offerCash) {
-        return { state, events: [], error: 'You do not have enough cash to offer' };
+      if (fromPlayer.id === toPlayer.id) {
+        return { state, events: [], error: 'You cannot trade with yourself' };
+      }
+      const o = action.offer;
+      if (
+        o.offerCash <= 0 && o.requestCash <= 0 &&
+        o.offerProperties.length === 0 && o.requestProperties.length === 0 &&
+        o.offerJailCards <= 0 && o.requestJailCards <= 0
+      ) {
+        return { state, events: [], error: 'Add something to the trade first' };
+      }
+      const invalid = validateTradeOffer(next, { ...o, fromPlayerId: fromPlayer.id });
+      if (invalid) {
+        return { state, events: [], error: invalid };
       }
 
       // Check properties don't have houses
@@ -1565,6 +1612,19 @@ export function executeGameAction(
       const trade = next.activeTrade;
       const fromPlayer = next.players.find((p) => p.id === trade.fromPlayerId)!;
       const toPlayer = next.players.find((p) => p.id === trade.toPlayerId)!;
+
+      // Re-validate: circumstances may have changed since the offer was made
+      const invalid = validateTradeOffer(next, trade);
+      if (invalid) {
+        next.activeTrade = null;
+        events.push({
+          id: `evt-${Date.now()}-trade-void`,
+          timestamp: Date.now(),
+          type: 'TRADE_REJECTED',
+          message: `The trade between ${fromPlayer.name} and ${toPlayer.name} was cancelled: ${invalid}`,
+        });
+        return { state: next, events };
+      }
 
       // Transfer cash
       fromPlayer.cash -= trade.offerCash;

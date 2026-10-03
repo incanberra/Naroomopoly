@@ -4,12 +4,14 @@ import { PlayerState, PropertyState } from '../../engine/types';
 import { TileArtIcon } from '../icons/icons';
 import { SquareIllustration } from './SquareIllustration';
 import { TokenRenderer } from '../icons/TokenIcons';
-import { Building2, Home, Landmark, Coins, ShieldAlert, Sparkles } from 'lucide-react';
+import { Building2, Home, Landmark, Coins, ShieldAlert, Sparkles, X, Pin } from 'lucide-react';
 
 interface TileDetailCloseUpProps {
   tile: BoardTile;
   propertyState?: PropertyState;
   owner?: PlayerState;
+  isPinned?: boolean;
+  onClose?: () => void;
 }
 
 const COLOR_GROUP_LETTERS: Record<ColorGroup, string> = {
@@ -27,6 +29,8 @@ export const TileDetailCloseUp: React.FC<TileDetailCloseUpProps> = ({
   tile,
   propertyState,
   owner,
+  isPinned,
+  onClose,
 }) => {
   const colorGroup = tile.property?.colorGroup;
   const colorConfig = colorGroup ? COLOR_GROUP_CONFIG[colorGroup] : null;
@@ -38,7 +42,20 @@ export const TileDetailCloseUp: React.FC<TileDetailCloseUpProps> = ({
   const mortgageValue = tile.property?.mortgageValue ?? tile.hardware?.mortgageValue ?? tile.utility?.mortgageValue;
 
   return (
-    <div className="w-full max-w-[330px] sm:max-w-[370px] bg-slate-900/98 backdrop-blur-md rounded-2xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.85)] border-2 border-slate-700/90 text-slate-100 flex flex-col overflow-hidden animate-in fade-in zoom-in-90 duration-150 pointer-events-auto">
+    <div className="w-full max-w-[330px] sm:max-w-[370px] bg-slate-900/98 backdrop-blur-md rounded-2xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.85)] border-2 border-slate-700/90 text-slate-100 flex flex-col overflow-hidden animate-in fade-in zoom-in-90 duration-150 pointer-events-auto relative">
+      {/* Pinned close button */}
+      {onClose && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="absolute top-2 right-2 z-30 w-6 h-6 rounded-full bg-black/60 hover:bg-black/80 text-white/90 hover:text-white flex items-center justify-center transition-colors shadow-md"
+          title="Close details"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      )}
       {/* 1. Header Banner */}
       {colorConfig ? (
         <div
@@ -271,6 +288,15 @@ export const TileDetailCloseUp: React.FC<TileDetailCloseUpProps> = ({
             </span>
           ) : null}
         </div>
+        {isPinned && (
+          <div className="bg-amber-500/15 border-t border-amber-500/30 px-3 py-1 flex items-center justify-between text-[9px] text-amber-300 font-bold">
+            <span className="flex items-center gap-1">
+              <Pin className="w-3 h-3 text-amber-400" />
+              Pinned for detailed reading
+            </span>
+            <span className="text-slate-400 font-medium">Click square or (X) to unpin</span>
+          </div>
+        )}
       </div>
     </div>
   );

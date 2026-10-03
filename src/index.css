@@ -114,15 +114,17 @@ body {
   animation: cashFlashDown 700ms ease-out;
 }
 
-/* Token hop on arrival at each square */
+/* Token hop on arrival at each square with tactile squash & stretch */
 @keyframes tokenHop {
-  0% { transform: translateY(0) scale(1); }
-  40% { transform: translateY(-9px) scale(1.35); }
-  100% { transform: translateY(0) scale(1); }
+  0% { transform: translateY(0) scale(1, 1); }
+  25% { transform: translateY(-3px) scale(0.92, 1.12); }
+  50% { transform: translateY(-10px) scale(1.08, 1.08); }
+  75% { transform: translateY(-2px) scale(1.12, 0.92); }
+  100% { transform: translateY(0) scale(1, 1); }
 }
 
 .animate-token-hop {
-  animation: tokenHop 300ms ease-out;
+  animation: tokenHop 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Floating +/- money tag */
@@ -134,6 +136,56 @@ body {
 
 .animate-float-money {
   animation: floatMoney 2200ms ease-out forwards;
+}
+
+/* 3D Card Flip Animation for Action Cards */
+@keyframes cardFlipIn {
+  0% {
+    transform: perspective(1000px) rotateY(85deg) scale(0.9);
+    opacity: 0;
+  }
+  65% {
+    transform: perspective(1000px) rotateY(-8deg) scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    transform: perspective(1000px) rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-card-flip {
+  animation: cardFlipIn 550ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+/* Dramatic Screen Shake when sent to Jail */
+@keyframes jailShake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  15% { transform: translate(-6px, 4px) rotate(-1deg); }
+  30% { transform: translate(6px, -4px) rotate(1deg); }
+  45% { transform: translate(-4px, 2px) rotate(-0.5deg); }
+  60% { transform: translate(4px, -2px) rotate(0.5deg); }
+  75% { transform: translate(-2px, 1px) rotate(0deg); }
+}
+
+.animate-jail-shake {
+  animation: jailShake 700ms ease-in-out both;
+}
+
+/* Police Strobe Effect when sent to Bodalla Police Station */
+@keyframes policeStrobe {
+  0%, 100% {
+    background-color: rgba(220, 38, 38, 0.28);
+    box-shadow: inset 0 0 50px rgba(220, 38, 38, 0.5);
+  }
+  50% {
+    background-color: rgba(37, 99, 235, 0.28);
+    box-shadow: inset 0 0 50px rgba(37, 99, 235, 0.5);
+  }
+}
+
+.animate-police-strobe {
+  animation: policeStrobe 220ms ease-in-out infinite;
 }
 
 /* 3.5s Notification Flash Countdown Bar */

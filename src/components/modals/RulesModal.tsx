@@ -8,13 +8,13 @@ interface RulesModalProps {
 export const RulesModal: React.FC<RulesModalProps> = ({ onClose }) => {
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-2xl max-h-[85vh] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col text-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-2xl max-h-[85vh] bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl flex flex-col text-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-150 font-board">
         {/* Header */}
         <div className="p-4 bg-slate-800/90 border-b border-slate-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-amber-400" />
             <div>
-              <h2 className="text-lg font-bold text-amber-300">Naroom-opoly Official Rules</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-amber-300 font-board">Naroom-opoly Official Rules</h2>
               <p className="text-xs text-slate-400">NSW South Coast Edition Guide</p>
             </div>
           </div>

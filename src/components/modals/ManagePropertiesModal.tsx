@@ -29,12 +29,12 @@ export const ManagePropertiesModal: React.FC<ManagePropertiesModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-xl max-h-[85vh] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col text-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-xl max-h-[85vh] bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl flex flex-col text-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-150 font-board">
         {/* Header */}
         <div className="p-4 bg-slate-800/90 border-b border-slate-700 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-amber-300">Property Management</h2>
-            <p className="text-xs text-slate-400">
+            <h2 className="text-lg sm:text-xl font-bold text-amber-300 font-board">Property Management</h2>
+            <p className="text-xs text-slate-400 font-sans">
               Build houses, hotels, mortgage or unmortgage your properties.
             </p>
           </div>

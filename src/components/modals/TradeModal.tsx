@@ -56,9 +56,9 @@ export const TradeModal: React.FC<TradeModalProps> = ({
     );
   };
 
-  const handleProposeTrade = () => {
+  const handleProposeTrade = async () => {
     if (!partnerPlayer) return;
-    onAction({
+    const res: any = await onAction({
       type: 'PROPOSE_TRADE',
       offer: {
         fromPlayerId: myPlayerId,
@@ -71,18 +71,64 @@ export const TradeModal: React.FC<TradeModalProps> = ({
         requestJailCards,
       },
     });
-    onClose();
+    // Keep the form open (with the error toast) if the engine rejected the offer
+    if (!res || res.success !== false) onClose();
   };
+
+  // Proposer's view after sending: offer summary + waiting state + cancel
+  const isOutgoingPending = Boolean(activeTrade && activeTrade.fromPlayerId === myPlayerId);
+  if (isOutgoingPending && activeTrade) {
+    const recipient = state.players.find((p) => p.id === activeTrade.toPlayerId);
+    const names = (list: number[]) => list.map((i) => BOARD_TILES[i]?.name).join(', ') || 'nothing';
+    return (
+      <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl text-slate-100 overflow-hidden font-board">
+          <div className="p-4 bg-slate-800/90 border-b border-slate-700 flex items-center gap-2">
+            <ArrowLeftRight className="w-5 h-5 text-cyan-400" />
+            <h2 className="text-lg font-bold text-amber-300 font-board">Offer sent</h2>
+          </div>
+          <div className="p-4 space-y-3 text-sm">
+            <div className="flex items-center gap-2 text-cyan-300 font-semibold font-board">
+              <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              Waiting for {recipient?.name ?? 'the other player'} to respond…
+            </div>
+            <div className="bg-slate-800/60 rounded-2xl p-3 space-y-1.5 text-xs font-sans">
+              <div>
+                <span className="text-slate-400">You give: </span>
+                <strong className="text-emerald-400 font-bold">${activeTrade.offerCash}</strong> + {names(activeTrade.offerProperties)}
+              </div>
+              <div>
+                <span className="text-slate-400">You get: </span>
+                <strong className="text-emerald-400 font-bold">${activeTrade.requestCash}</strong> + {names(activeTrade.requestProperties)}
+              </div>
+            </div>
+          </div>
+          <div className="p-4 bg-slate-800/90 border-t border-slate-700 flex justify-end gap-3">
+            <button
+              onClick={() => {
+                onAction({ type: 'CANCEL_TRADE' });
+                onClose();
+              }}
+              className="px-4 py-2 rounded-xl bg-red-950/60 hover:bg-red-900 text-red-200 text-xs font-bold font-board flex items-center gap-1.5 transition-colors"
+            >
+              <Ban className="w-4 h-4" />
+              Cancel offer
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col text-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-2xl max-h-[90vh] bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl flex flex-col text-slate-100 overflow-hidden animate-in fade-in zoom-in-95 duration-150 font-board">
         {/* Header */}
         <div className="p-4 bg-slate-800/90 border-b border-slate-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ArrowLeftRight className="w-5 h-5 text-cyan-400" />
             <div>
-              <h2 className="text-lg font-bold text-amber-300">
+              <h2 className="text-lg sm:text-xl font-bold text-amber-300 font-board">
                 {isIncomingTrade ? 'Incoming Trade Offer' : 'Trade Negotiation'}
               </h2>
               <p className="text-xs text-slate-400">

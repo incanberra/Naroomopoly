@@ -37,7 +37,7 @@ export const ActiveCardModal: React.FC<ActiveCardModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-sm bg-slate-900 border-2 border-amber-400 rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-100 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-sm bg-slate-900 border-2 border-amber-400 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-slate-100 animate-card-flip">
         {/* Drawer Banner */}
         {player && (
           <div className="px-4 py-2 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between">
@@ -48,11 +48,11 @@ export const ActiveCardModal: React.FC<ActiveCardModalProps> = ({
               >
                 <TokenRenderer tokenId={player.token} size={12} color="#FFFFFF" />
               </div>
-              <span className="text-xs font-bold text-slate-200">
+              <span className="text-xs font-bold text-slate-200 font-board">
                 {isMyCard ? 'You drew an action card:' : `${player.name} drew an action card:`}
               </span>
             </div>
-            <div className="flex items-center gap-1 text-[11px] font-bold text-amber-400">
+            <div className="flex items-center gap-1 text-[11px] font-bold text-amber-400 font-mono">
               <Clock className="w-3 h-3 animate-spin" style={{ animationDuration: '4s' }} />
               <span>3.5s</span>
             </div>
@@ -69,22 +69,22 @@ export const ActiveCardModal: React.FC<ActiveCardModalProps> = ({
         >
           <div className="flex items-center justify-center gap-1.5 mb-1">
             {isNotice ? <ClipboardList className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
-            <span className="text-[11px] font-black uppercase tracking-wider">
+            <span className="text-[11px] font-black uppercase tracking-wider font-board">
               {isNotice ? 'Community Notice Board' : 'Local Knowledge'}
             </span>
           </div>
-          <h2 className="text-xl font-black">{card.title}</h2>
+          <h2 className="text-xl sm:text-2xl font-black font-board">{card.title}</h2>
         </div>
 
         {/* Card Content */}
         <div className="p-6 text-center space-y-4">
-          <p className="text-base text-slate-200 font-medium leading-relaxed">
+          <p className="text-base text-slate-200 font-medium leading-relaxed font-sans">
             {card.description}
           </p>
 
           <button
             onClick={onDismiss}
-            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5"
+            className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm font-board shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5"
           >
             <CheckCircle className="w-4 h-4" />
             Continue

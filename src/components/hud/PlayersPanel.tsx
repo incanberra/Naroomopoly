@@ -4,7 +4,7 @@ import { BOARD_TILES, COLOR_GROUP_CONFIG, ColorGroup } from '../../data/boardDat
 import { TokenRenderer } from '../icons/TokenIcons';
 import { CashBadge } from './CashBadge';
 import { getCurrentPlayer, ownsFullGroup } from '../../engine/rules';
-import { ArrowLeftRight, UserX, ShieldAlert, ChevronDown, ChevronUp, Crown } from 'lucide-react';
+import { ArrowLeftRight, UserX, ShieldAlert, ChevronDown, ChevronUp, Crown, Sparkles } from 'lucide-react';
 
 interface PlayersPanelProps {
   state: GameState;
@@ -51,6 +51,19 @@ export const PlayersPanel: React.FC<PlayersPanelProps> = ({
           const ownedProps = Object.values(state.properties).filter(
             (p) => p.ownerId === player.id
           );
+
+          // Calculate total Net Worth (Cash + Unmortgaged Properties + Mortgaged / 2 + House investments)
+          const netWorth = player.isBankrupt
+            ? 0
+            : player.cash +
+              ownedProps.reduce((sum, p) => {
+                const tile = BOARD_TILES[p.tileIndex];
+                const basePrice = tile?.property?.price ?? tile?.hardware?.price ?? tile?.utility?.price ?? 0;
+                const houseCost = tile?.property?.houseCost ?? 0;
+                const propVal = p.isMortgaged ? Math.floor(basePrice / 2) : basePrice;
+                const housesVal = p.houses * houseCost;
+                return sum + propVal + housesVal;
+              }, 0);
 
           // Group owned properties by color group or type
           const groupedProps: Record<string, typeof ownedProps> = {};
@@ -105,8 +118,17 @@ export const PlayersPanel: React.FC<PlayersPanelProps> = ({
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-slate-400 truncate">
-                        {BOARD_TILES[player.position]?.name}
+                      <div className="flex items-center gap-2 text-[11px] text-slate-400 truncate">
+                        <span className="truncate">{BOARD_TILES[player.position]?.name}</span>
+                        {!player.isBankrupt && (
+                          <span
+                            className="text-[10px] text-amber-300/95 font-bold flex items-center gap-0.5 flex-shrink-0 bg-amber-950/40 px-1.5 py-0.2 rounded border border-amber-800/40"
+                            title="Total Net Worth: Cash + Property Value + Building Investments"
+                          >
+                            <Sparkles className="w-2.5 h-2.5 text-amber-400" />
+                            Net ${netWorth}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -166,9 +188,26 @@ export const PlayersPanel: React.FC<PlayersPanelProps> = ({
                                   {isFullMonopoly && <Crown className="w-3 h-3 text-amber-400 inline" />}
                                   {groupConfig ? groupConfig.name : groupKey === 'hardware' ? 'Hardware Stores' : 'Utilities'}
                                 </span>
-                                <span className={isFullMonopoly ? 'text-amber-400 font-black' : 'text-slate-500'}>
-                                  {props.length}/{totalInGroup} {isFullMonopoly ? '★ Full Set' : ''}
-                                </span>
+                                {/* Visual Color-Set Progress Dots */}
+                                <div className="flex items-center gap-1.5">
+                                  <div className="flex items-center gap-0.5">
+                                    {Array.from({ length: totalInGroup }).map((_, i) => (
+                                      <span
+                                        key={i}
+                                        className={`inline-block w-2 h-2 rounded-full border ${
+                                          i < props.length
+                                            ? isFullMonopoly
+                                              ? 'bg-amber-400 border-amber-300 shadow-xs'
+                                              : 'bg-emerald-400 border-emerald-300'
+                                            : 'bg-slate-800 border-slate-700'
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className={isFullMonopoly ? 'text-amber-400 font-black' : 'text-slate-400'}>
+                                    {props.length}/{totalInGroup} {isFullMonopoly ? '★ Full Set' : ''}
+                                  </span>
+                                </div>
                               </div>
 
                               <div className="flex flex-wrap gap-1 mt-0.5">

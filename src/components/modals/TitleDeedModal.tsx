@@ -33,7 +33,7 @@ export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-sm bg-slate-900 border-2 border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-100 animate-in fade-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-sm bg-slate-900 border-2 border-slate-700 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-slate-100 animate-card-flip font-board">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -51,18 +51,18 @@ export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
             <div className="text-[10px] uppercase font-black tracking-widest text-white/90">
               Title Deed
             </div>
-            <h2 className="text-xl font-black text-white drop-shadow-sm">{tile.name}</h2>
+            <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-sm">{tile.name}</h2>
             <div className="text-xs text-white/80 font-medium">{colorConfig.name}</div>
           </div>
         ) : (
           <div className="p-4 bg-slate-800 text-center border-b border-slate-700 flex flex-col items-center">
-            <div className="w-14 h-14 rounded-xl overflow-hidden shadow-md border border-slate-600 mb-1.5">
+            <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-md border border-slate-600 mb-1.5">
               <SquareIllustration index={tile.index} size={56} className="w-full h-full object-cover" />
             </div>
             <div className="text-[10px] uppercase font-bold tracking-widest text-slate-400">
               South Coast Landmark
             </div>
-            <h2 className="text-xl font-black text-slate-100">{tile.name}</h2>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-100">{tile.name}</h2>
           </div>
         )}
 

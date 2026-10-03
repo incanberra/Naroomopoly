@@ -417,13 +417,21 @@ class GameService {
         (id) => state.players.find((p) => p.id === id)?.isBot
       );
 
-    if (!isBotTurn && !isAuctionWithBots) return;
+    const tradeRecipientBotId =
+      state.activeTrade &&
+      state.players.find((p) => p.id === state.activeTrade!.toPlayerId)?.isBot
+        ? state.activeTrade.toPlayerId
+        : null;
+
+    if (!isBotTurn && !isAuctionWithBots && !tradeRecipientBotId) return;
 
     if (this.botTimer) clearTimeout(this.botTimer);
 
     // Adaptive bot pacing so card draws, landing implications, and moves remain visible for 3.5s
     let delay = 1200;
-    if (state.activeCard) {
+    if (tradeRecipientBotId) {
+      delay = 2200; // let the human see "waiting for response" before the bot answers
+    } else if (state.activeCard) {
       // Action card drawn! Keep visible for 3.7s so players can read the 3.5s notification
       delay = 3700;
     } else if (state.phase === 'rolled') {
@@ -442,8 +450,15 @@ class GameService {
       // Identify which bot needs to act
       let botIdToAct: string | null = null;
 
-      // 1. In auction phase, prioritize finding an active bot bidder who is NOT the highest bidder
-      if (this.localState.phase === 'auction' && this.localState.activeAuction) {
+      // Pending trade offered to a bot: that bot answers (works on anyone's turn)
+      const pendingTrade = this.localState.activeTrade;
+      const tradeBot = pendingTrade
+        ? this.localState.players.find((p) => p.id === pendingTrade.toPlayerId && p.isBot)
+        : null;
+
+      if (tradeBot) {
+        botIdToAct = tradeBot.id;
+      } else if (this.localState.phase === 'auction' && this.localState.activeAuction) {
         const auction = this.localState.activeAuction;
         const activeBot = auction.activeBidderIds.find((id) => {
           const p = this.localState!.players.find((pl) => pl.id === id);
